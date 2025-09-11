@@ -1,0 +1,33 @@
+{
+  "name": "usof",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "setup-db": "node setup-db.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Butterfly2112/USOF.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Butterfly2112/USOF/issues"
+  },
+  "homepage": "https://github.com/Butterfly2112/USOF#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "chalk": "^4.1.2",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "mysql2": "^3.14.5"
+  }
+}
