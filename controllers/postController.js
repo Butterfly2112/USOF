@@ -118,6 +118,68 @@ async function getPostLikes(postId) {
   return likes;
 }
 
+async function togglePostLock(req, res, next) {
+  try {
+    const postId = Number(req.params.postId);
+    const adminId = req.user.id;
+    
+    // Проверить существование поста
+    const [posts] = await pool.query('SELECT locked FROM posts WHERE id = ?', [postId]);
+    if (posts.length === 0) {
+      return res.status(404).json({ success: false, error: 'Post not found' });
+    }
+    
+    const newLockStatus = !posts[0].locked;
+    const lockedBy = newLockStatus ? adminId : null;
+    const lockedAt = newLockStatus ? new Date() : null;
+    
+    await pool.query(
+      'UPDATE posts SET locked = ?, locked_by = ?, locked_at = ? WHERE id = ?',
+      [newLockStatus, lockedBy, lockedAt, postId]
+    );
+    
+    res.json({ 
+      success: true, 
+      message: `Post ${newLockStatus ? 'locked' : 'unlocked'} successfully`,
+      locked: newLockStatus 
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getPostCategories(req, res, next) {
+  try {
+    const postId = Number(req.params.postId);
+    
+    const [categories] = await pool.query(`
+      SELECT c.* FROM categories c
+      JOIN post_categories pc ON c.id = pc.category_id
+      WHERE pc.post_id = ?
+    `, [postId]);
+    
+    res.json({ success: true, categories });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function deleteLike(req, res, next) {
+  try {
+    const postId = Number(req.params.postId);
+    const userId = req.user.id;
+    
+    await pool.query(
+      'DELETE FROM likes WHERE author_id = ? AND post_id = ?',
+      [userId, postId]
+    );
+    
+    res.json({ success: true, message: 'Like removed successfully' });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // Экспорт функций
 module.exports = {
   createPost,
@@ -128,5 +190,8 @@ module.exports = {
   addComment,
   listComments,
   like,
-  getPostLikes // Добавляем экспорт новой функции
+  getPostLikes,
+  togglePostLock,
+  getPostCategories,
+  deleteLike
 };

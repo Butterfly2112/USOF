@@ -93,6 +93,30 @@ async function resetPassword(req, res, next) {
   }
 }
 
+async function confirmPasswordReset(req, res, next) {
+  try {
+    const { confirm_token } = req.params;
+    const { newPassword } = req.body;
+    
+    const record = await userModel.findByResetToken(confirm_token);
+    if (!record) {
+      return res.status(400).json({ success: false, error: 'Invalid or expired token' });
+    }
+
+    // Обновить пароль
+    const bcrypt = require('bcrypt');
+    const hash = await bcrypt.hash(newPassword, 10);
+    await pool.query(`UPDATE users SET password = ? WHERE id = ?`, [hash, record.user_id]);
+    
+    // Удалить токен
+    await pool.query(`DELETE FROM password_resets WHERE id = ?`, [record.id]);
+
+    res.json({ success: true, message: 'Password reset successfully' });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function logout(req, res, next) {
   try {
     // Пример реализации выхода из системы
@@ -108,5 +132,6 @@ module.exports = {
   login,
   requestPasswordReset,
   resetPassword,
-  logout // Экспортируем новую функцию
+  confirmPasswordReset,
+  logout
 };

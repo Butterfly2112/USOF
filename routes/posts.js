@@ -89,4 +89,7 @@ router.get('/:postId/categories', pc.getPostCategories);
 // ОТСУТСТВУЕТ: DELETE /api/posts/:post_id/like
 router.delete('/:postId/likes', auth, pc.deleteLike);
 
+// Блокировка/разблокировка поста (только для админов)
+router.patch('/:postId/lock', auth, admin, pc.togglePostLock);
+
 module.exports = router;

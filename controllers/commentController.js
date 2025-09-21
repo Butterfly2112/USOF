@@ -51,8 +51,76 @@ async function getCommentLikes(req, res, next) {
   }
 }
 
+async function getComment(req, res, next) {
+  try {
+    const commentId = Number(req.params.commentId);
+    const [comments] = await pool.query(`
+      SELECT c.*, u.login as author_name, u.fullName as author_fullname
+      FROM comments c
+      JOIN users u ON c.author_id = u.id
+      WHERE c.id = ?
+    `, [commentId]);
+    
+    if (comments.length === 0) {
+      return res.status(404).json({ success: false, error: 'Comment not found' });
+    }
+    
+    res.json({ success: true, comment: comments[0] });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function toggleCommentLock(req, res, next) {
+  try {
+    const commentId = Number(req.params.commentId);
+    const adminId = req.user.id;
+    
+    const [comments] = await pool.query('SELECT locked FROM comments WHERE id = ?', [commentId]);
+    if (comments.length === 0) {
+      return res.status(404).json({ success: false, error: 'Comment not found' });
+    }
+    
+    const newLockStatus = !comments[0].locked;
+    const lockedBy = newLockStatus ? adminId : null;
+    const lockedAt = newLockStatus ? new Date() : null;
+    
+    await pool.query(
+      'UPDATE comments SET locked = ?, locked_by = ?, locked_at = ? WHERE id = ?',
+      [newLockStatus, lockedBy, lockedAt, commentId]
+    );
+    
+    res.json({ 
+      success: true, 
+      message: `Comment ${newLockStatus ? 'locked' : 'unlocked'} successfully`,
+      locked: newLockStatus 
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function deleteCommentLike(req, res, next) {
+  try {
+    const commentId = Number(req.params.commentId);
+    const userId = req.user.id;
+    
+    await pool.query(
+      'DELETE FROM likes WHERE author_id = ? AND comment_id = ?',
+      [userId, commentId]
+    );
+    
+    res.json({ success: true, message: 'Like removed successfully' });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   updateComment,
   deleteComment,
-  getCommentLikes // Экспортируем новую функцию
+  getCommentLikes,
+  getComment,
+  toggleCommentLock,
+  deleteCommentLike
 };

@@ -55,7 +55,11 @@ CREATE TABLE posts (
   status ENUM('active', 'inactive') DEFAULT 'active',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
+  locked BOOLEAN DEFAULT FALSE,
+  locked_by INT NULL,
+  locked_at TIMESTAMP NULL,
+  FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (locked_by) REFERENCES users(id)
 );
 
 -- post_categories (many-to-many relationship)
@@ -76,8 +80,12 @@ CREATE TABLE comments (
   publish_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  locked BOOLEAN DEFAULT FALSE,
+  locked_by INT NULL,
+  locked_at TIMESTAMP NULL,
   FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+  FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+  FOREIGN KEY (locked_by) REFERENCES users(id)
 );
 
 -- likes table (author, publish_date, post/comment_id, type as required)
