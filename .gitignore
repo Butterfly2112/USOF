@@ -1,5 +1,7 @@
+.env
 node_modules/
 .DS_Store
-./vscode
-.env
-package-lock.json
+Thumbs.db
+uploads/
+.vscode/
+.package-lock.json

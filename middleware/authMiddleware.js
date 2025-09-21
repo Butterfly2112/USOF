@@ -1,35 +1,26 @@
-const { verifyToken } = require('../utils/auth');
+const jwt = require('jsonwebtoken');
+const pool = require('../config/database');
 
-function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+const JWT_SECRET = process.env.JWT_SECRET || 'secret';
 
-    if (token == null) {
-        return res.status(401).json({ message: 'Authentication token required' });
-    }
+async function authMiddleware(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (!token) return res.status(401).json({ success: false, error: 'No token provided' });
 
-    const user = verifyToken(token);
-    if (!user) {
-        return res.status(403).json({ message: 'Invalid or expired token' });
-    }
-
-    req.user = user; // Добавляем информацию о пользователе в объект запроса
+    const payload = jwt.verify(token, JWT_SECRET);
+    // fetch user basic info
+    const [rows] = await pool.query('SELECT id, login, email, fullName, role, profilePicture FROM users WHERE id = ?', [payload.id]);
+    if (!rows[0]) return res.status(401).json({ success: false, error: 'User not found' });
+    req.user = rows[0];
     next();
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, error: 'Token expired' });
+    }
+    return res.status(401).json({ success: false, error: 'Invalid token' });
+  }
 }
 
-function authorizeRoles(roles = []) {
-    return (req, res, next) => {
-        if (!req.user || !req.user.role) {
-            return res.status(403).json({ message: 'Access denied: User role not found' });
-        }
-        if (!roles.includes(req.user.role)) {
-            return res.status(403).json({ message: `Access denied: Requires one of roles: ${roles.join(', ')}` });
-        }
-        next();
-    };
-}
-
-module.exports = {
-    authenticateToken,
-    authorizeRoles
-};
+module.exports = authMiddleware;
