@@ -4,4 +4,4 @@ node_modules/
 Thumbs.db
 uploads/
 .vscode/
-.package-lock.json
+package-lock.json
