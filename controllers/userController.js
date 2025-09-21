@@ -45,8 +45,12 @@ async function deleteUser(req, res, next) {
 
 async function listUsers(req, res, next) {
   try {
-    // admin only
-    const [rows] = await pool.query(`SELECT id, login, fullName, email, role, profilePicture FROM users ORDER BY id DESC`);
+    // Публичный список пользователей - скрываем чувствительные данные
+    const [rows] = await pool.query(`
+      SELECT id, login, fullName, profilePicture, rating, role, created_at 
+      FROM users 
+      ORDER BY rating DESC, id DESC
+    `);
     res.json({ success: true, users: rows });
   } catch (err) {
     next(err);

@@ -9,8 +9,8 @@ const path = require('path');
 
 const upload = multer({ dest: (process.env.UPLOAD_DIR || 'uploads') });
 
-// Получение списка пользователей (только для админов)
-router.get('/', auth, admin, userCtrl.listUsers);
+// Получение списка пользователей (ДОЛЖНО БЫТЬ ПУБЛИЧНЫМ)
+router.get('/', userCtrl.listUsers); // убрать auth, admin
 
 // Загрузка аватара (ПЕРВЫМ)
 router.patch('/avatar', auth, upload.single('profilePicture'), async (req, res, next) => {

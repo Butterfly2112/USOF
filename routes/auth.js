@@ -14,8 +14,8 @@ router.post('/register', [
 // Авторизация пользователя
 router.post('/login', authCtrl.login);
 
-// Запрос на сброс пароля
-router.post('/request-reset', authCtrl.requestPasswordReset);
+// Запрос на сброс пароля (ИЗМЕНИТЬ НАЗВАНИЕ)
+router.post('/password-reset', authCtrl.requestPasswordReset);
 
 // Сброс пароля
 router.post('/reset-password', authCtrl.resetPassword);

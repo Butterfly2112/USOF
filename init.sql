@@ -83,6 +83,7 @@ CREATE TABLE comments (
   locked BOOLEAN DEFAULT FALSE,
   locked_by INT NULL,
   locked_at TIMESTAMP NULL,
+  status ENUM('active', 'inactive') DEFAULT 'active',
   FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
   FOREIGN KEY (locked_by) REFERENCES users(id)

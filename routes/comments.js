@@ -11,15 +11,14 @@ router.patch('/:commentId', auth, cc.updateComment);
 // Удаление комментария
 router.delete('/:commentId', auth, cc.deleteComment);
 
-// Лайки для комментариев
-router.post('/:commentId/likes', auth, async (req, res, next) => {
-  // delegate to postController.like with commentId
+// Лайки для комментариев (УБРАТЬ 's')
+router.post('/:commentId/like', auth, async (req, res, next) => {
   req.params.commentId = req.params.commentId;
   return require('../controllers/postController').like(req, res, next);
 });
 
-// Получение всех лайков под комментарием
-router.get('/:commentId/likes', auth, cc.getCommentLikes);
+// Получение всех лайков под комментарием (УБРАТЬ 's')
+router.get('/:commentId/like', cc.getCommentLikes);
 
 // Получение комментария
 router.get('/:commentId', cc.getComment);
@@ -27,7 +26,10 @@ router.get('/:commentId', cc.getComment);
 // Блокировка комментария
 router.patch('/:commentId/lock', auth, admin, cc.toggleCommentLock);
 
-// Удаление лайка с комментария
-router.delete('/:commentId/likes', auth, cc.deleteCommentLike);
+// Удаление лайка с комментария (УБРАТЬ 's')
+router.delete('/:commentId/like', auth, cc.deleteCommentLike);
+
+// Изменение статуса комментария (пользователи - только свои, админы - любые)
+router.patch('/:commentId/status', auth, cc.updateCommentStatus);
 
 module.exports = router;

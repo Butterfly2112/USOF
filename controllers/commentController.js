@@ -116,11 +116,42 @@ async function deleteCommentLike(req, res, next) {
   }
 }
 
+async function updateCommentStatus(req, res, next) {
+  try {
+    const commentId = Number(req.params.commentId);
+    const { status } = req.body; // 'active' или 'inactive'
+    
+    if (!['active', 'inactive'].includes(status)) {
+      return res.status(400).json({ success: false, error: 'Invalid status' });
+    }
+    
+    // Пользователи могут менять только свои комментарии
+    const query = req.user.role === 'admin' 
+      ? 'UPDATE comments SET status = ? WHERE id = ?'
+      : 'UPDATE comments SET status = ? WHERE id = ? AND author_id = ?';
+    
+    const params = req.user.role === 'admin' 
+      ? [status, commentId]
+      : [status, commentId, req.user.id];
+    
+    const [result] = await pool.query(query, params);
+    
+    if (result.affectedRows === 0) {
+      return res.status(403).json({ success: false, error: 'Forbidden or comment not found' });
+    }
+    
+    res.json({ success: true, message: `Comment status updated to ${status}` });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   updateComment,
   deleteComment,
   getCommentLikes,
   getComment,
   toggleCommentLock,
-  deleteCommentLike
+  deleteCommentLike,
+  updateCommentStatus
 };

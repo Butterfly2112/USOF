@@ -180,6 +180,24 @@ async function deleteLike(req, res, next) {
   }
 }
 
+// В методе listPosts добавить логику:
+
+async function listPosts(filters, userId = null, userRole = null) {
+  // ...existing code...
+  
+  // Если пользователь авторизован и не админ - показать активные + свои неактивные
+  if (userId && userRole !== 'admin') {
+    whereSql += (whereSql ? ' AND ' : 'WHERE ') + '(p.status = "active" OR (p.status = "inactive" AND p.author_id = ?))';
+    vals.push(userId);
+  } else if (!userId || userRole !== 'admin') {
+    // Неавторизованные или обычные пользователи - только активные
+    whereSql += (whereSql ? ' AND ' : 'WHERE ') + 'p.status = "active"';
+  }
+  // Админы видят все посты
+  
+  // ...existing code...
+}
+
 // Экспорт функций
 module.exports = {
   createPost,

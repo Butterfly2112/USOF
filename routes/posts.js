@@ -69,25 +69,25 @@ router.get('/:postId/comments', pc.listComments);
 // Добавление комментария к посту
 router.post('/:postId/comments', auth, pc.addComment);
 
-// Получение всех лайков под постом
-router.get('/:postId/likes', async (req, res, next) => {
+// Получение всех лайков под постом (УБРАТЬ 's')
+router.get('/:postId/like', async (req, res, next) => {
   try {
     const postId = Number(req.params.postId);
-    const likes = await pc.getPostLikes(postId); // Используем новую функцию
+    const likes = await pc.getPostLikes(postId);
     res.json({ success: true, likes });
   } catch (err) {
     next(err);
   }
 });
 
-// Добавление лайка к посту
-router.post('/:postId/likes', auth, pc.like);
+// Добавление лайка к посту (УБРАТЬ 's')
+router.post('/:postId/like', auth, pc.like);
+
+// Удаление лайка поста (УБРАТЬ 's')
+router.delete('/:postId/like', auth, pc.deleteLike);
 
 // ОТСУТСТВУЕТ: GET /api/posts/:post_id/categories
 router.get('/:postId/categories', pc.getPostCategories);
-
-// ОТСУТСТВУЕТ: DELETE /api/posts/:post_id/like
-router.delete('/:postId/likes', auth, pc.deleteLike);
 
 // Блокировка/разблокировка поста (только для админов)
 router.patch('/:postId/lock', auth, admin, pc.togglePostLock);
