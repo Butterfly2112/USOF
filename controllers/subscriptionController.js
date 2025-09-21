@@ -5,6 +5,7 @@ async function subscribeToPost(req, res, next) {
     const userId = req.user.id;
     const postId = Number(req.params.postId);
     
+    // Use INSERT IGNORE to prevent duplicate subscriptions
     await pool.query(
       'INSERT IGNORE INTO post_subscriptions (user_id, post_id) VALUES (?, ?)',
       [userId, postId]
@@ -38,6 +39,7 @@ async function getNotifications(req, res, next) {
     const { page = 1, pageSize = 20, unreadOnly = false } = req.query;
     const offset = (page - 1) * pageSize;
     
+    // Join notifications with posts and users to get additional info
     let query = `
       SELECT n.*, p.title as post_title, u.login as triggered_by_login
       FROM notifications n
@@ -48,6 +50,7 @@ async function getNotifications(req, res, next) {
     
     const params = [userId];
     
+    // Optionally filter only unread notifications
     if (unreadOnly === 'true') {
       query += ' AND n.is_read = FALSE';
     }
@@ -67,6 +70,7 @@ async function markAsRead(req, res, next) {
     const userId = req.user.id;
     const notificationId = Number(req.params.notificationId);
     
+    // Ensure user can only mark their own notifications as read
     await pool.query(
       'UPDATE notifications SET is_read = TRUE WHERE id = ? AND user_id = ?',
       [notificationId, userId]
@@ -78,16 +82,16 @@ async function markAsRead(req, res, next) {
   }
 }
 
-// Функция для создания уведомлений
+// Helper function to create notifications for subscribers
 async function createNotification(type, postId, triggeredByUserId, message) {
   try {
-    // Получить всех подписчиков поста
+    // Get all subscribers except the user who triggered the action
     const [subscribers] = await pool.query(
       'SELECT user_id FROM post_subscriptions WHERE post_id = ? AND user_id != ?',
       [postId, triggeredByUserId]
     );
     
-    // Создать уведомления для каждого подписчика
+    // Create notification for each subscriber
     for (const subscriber of subscribers) {
       await pool.query(
         'INSERT INTO notifications (user_id, type, post_id, triggered_by_user_id, message) VALUES (?, ?, ?, ?, ?)',

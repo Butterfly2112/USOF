@@ -5,13 +5,13 @@ async function addToFavorites(req, res, next) {
     const userId = req.user.id;
     const postId = Number(req.params.postId);
     
-    // Проверить существование поста
+    // Check if post exists and is active
     const [posts] = await pool.query('SELECT id FROM posts WHERE id = ? AND status = "active"', [postId]);
     if (!posts.length) {
       return res.status(404).json({ success: false, error: 'Post not found' });
     }
     
-    // Добавить в избранное (игнорировать дубликаты)
+    // Add to favorites (ignore duplicates)
     await pool.query(
       'INSERT IGNORE INTO user_favorites (user_id, post_id) VALUES (?, ?)',
       [userId, postId]
@@ -45,6 +45,7 @@ async function getFavorites(req, res, next) {
     const { page = 1, pageSize = 10 } = req.query;
     const offset = (page - 1) * pageSize;
     
+    // Join favorites with posts and users, calculate likes/dislikes
     const query = `
       SELECT p.*, u.login as authorLogin, u.fullName as authorName,
         (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id AND l.type = 'like') as likesCount,

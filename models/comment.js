@@ -1,7 +1,7 @@
-// models/comment.js
 const pool = require('../config/database');
 
 async function createComment({ authorId, postId, content, publishDate = null }) {
+  // Use current date if publishDate not provided
   const pd = publishDate ? publishDate : new Date();
   const [res] = await pool.query(`INSERT INTO comments (author_id, post_id, content, publishDate) VALUES (?, ?, ?, ?)`, [authorId, postId, content, pd]);
   return res.insertId;
@@ -20,6 +20,7 @@ async function getCommentsByPost(postId) {
 }
 
 async function updateComment(id, fields) {
+  // Build dynamic UPDATE query from fields object
   const cols = [], vals=[];
   for (const [k,v] of Object.entries(fields)) { cols.push(`${k} = ?`); vals.push(v); }
   vals.push(id);

@@ -1,35 +1,35 @@
-// routes/comments.js
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/authMiddleware');
+const admin = require('../middleware/adminMiddleware');
 const cc = require('../controllers/commentController');
 const pc = require('../controllers/postController');
 
-// Обновление комментария
+// Update comment (author only)
 router.patch('/:commentId', auth, cc.updateComment);
 
-// Удаление комментария
+// Delete comment (author only)
 router.delete('/:commentId', auth, cc.deleteComment);
 
-// Лайки для комментариев (УБРАТЬ 's')
+// Like/dislike comment - reuse post like controller
 router.post('/:commentId/like', auth, async (req, res, next) => {
   req.params.commentId = req.params.commentId;
   return require('../controllers/postController').like(req, res, next);
 });
 
-// Получение всех лайков под комментарием (УБРАТЬ 's')
+// Get all likes for a comment
 router.get('/:commentId/like', cc.getCommentLikes);
 
-// Получение комментария
+// Get specific comment details
 router.get('/:commentId', cc.getComment);
 
-// Блокировка комментария
+// Lock/unlock comment (admin only)
 router.patch('/:commentId/lock', auth, admin, cc.toggleCommentLock);
 
-// Удаление лайка с комментария (УБРАТЬ 's')
+// Remove like from comment
 router.delete('/:commentId/like', auth, cc.deleteCommentLike);
 
-// Изменение статуса комментария (пользователи - только свои, админы - любые)
+// Change comment status (users - own comments only, admins - any)
 router.patch('/:commentId/status', auth, cc.updateCommentStatus);
 
 module.exports = router;

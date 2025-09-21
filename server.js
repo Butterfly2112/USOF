@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const dotenv = require('dotenv');
 const path = require('path');
@@ -15,15 +14,20 @@ const pool = require('./config/database');
 
 const { errorHandler } = require('./middleware/errorMiddleware');
 
+// Ensure upload directory exists
 const UPLOAD_DIR = process.env.UPLOAD_DIR || 'uploads';
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const app = express();
 
+// Parse JSON and URL-encoded request bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve uploaded files statically
 app.use('/' + UPLOAD_DIR, express.static(path.join(__dirname, UPLOAD_DIR)));
 
+// API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
@@ -34,10 +38,10 @@ app.use('/api/subscriptions', require('./routes/subscriptions'));
 app.use('/api/search', require('./routes/search'));
 app.use('/api/stats', require('./routes/stats'));
 
-// health
+// Health check endpoint
 app.get('/health', (req, res) => res.json({ ok: true }));
 
-// error handler
+// Global error handler (must be last)
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 4000;

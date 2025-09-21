@@ -1,26 +1,25 @@
-// routes/categories.js
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/authMiddleware');
 const admin = require('../middleware/adminMiddleware');
 const cc = require('../controllers/categoryController');
 
-// Список всех категорий
+// Public endpoint - anyone can view categories
 router.get('/', cc.listCategories);
 
-// Создание новой категории (только для админов)
+// Admin only - create new category
 router.post('/', auth, admin, cc.createCategory);
 
-// Получение данных конкретной категории
+// Public endpoint - get specific category details
 router.get('/:categoryId', cc.getCategory);
 
-// Обновление категории (только для админов)
+// Admin only - update category
 router.patch('/:categoryId', auth, admin, cc.updateCategory);
 
-// Удаление категории (только для админов)
+// Admin only - delete category
 router.delete('/:categoryId', auth, admin, cc.deleteCategory);
 
-// Получение всех постов, связанных с категорией
+// Public endpoint - get posts by category
 router.get('/:categoryId/posts', cc.getPostsByCategory);
 
 module.exports = router;

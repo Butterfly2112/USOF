@@ -1,4 +1,3 @@
-// routes/posts.js
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/authMiddleware');
@@ -7,20 +6,22 @@ const pc = require('../controllers/postController');
 const multer = require('multer');
 const path = require('path');
 
+// Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, process.env.UPLOAD_DIR || 'uploads'); // Папка для сохранения
+    cb(null, process.env.UPLOAD_DIR || 'uploads'); // Upload directory
   },
   filename: (req, file, cb) => {
+    // Generate unique filename with timestamp and random number
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname); // Получаем расширение файла
-    cb(null, file.fieldname + '-' + uniqueSuffix + ext); // Генерируем имя файла
+    const ext = path.extname(file.originalname); // Get file extension
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
   }
 });
 
 const upload = multer({ storage });
 
-// Список постов с фильтрацией и сортировкой
+// List posts with filtering and sorting
 router.get('/', async (req, res, next) => {
   try {
     const { page = 1, pageSize = 10, sort = 'likes', categories, dateFrom, dateTo, status = 'active' } = req.query;
@@ -42,9 +43,10 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// Создание поста
+// Create post with image upload support (up to 6 images)
 router.post('/', auth, upload.array('images', 6), async (req, res, next) => {
   try {
+    // Process uploaded images and add paths to request body
     if (req.files && req.files.length) {
       req.body.images = req.files.map(f => '/' + path.join(process.env.UPLOAD_DIR || 'uploads', f.filename));
     }
@@ -54,22 +56,22 @@ router.post('/', auth, upload.array('images', 6), async (req, res, next) => {
   }
 });
 
-// Получение поста по ID (ДОЛЖНО БЫТЬ ПУБЛИЧНЫМ)
-router.get('/:postId', pc.getPost); // убрать auth
+// Get post by ID (public endpoint)
+router.get('/:postId', pc.getPost);
 
-// Обновление поста
+// Update post (author or admin only)
 router.patch('/:postId', auth, pc.updatePost);
 
-// Удаление поста
+// Delete post (author or admin only)
 router.delete('/:postId', auth, pc.deletePost);
 
-// Получение всех комментариев для поста
+// Get all comments for a post
 router.get('/:postId/comments', pc.listComments);
 
-// Добавление комментария к посту
+// Add comment to post
 router.post('/:postId/comments', auth, pc.addComment);
 
-// Получение всех лайков под постом (УБРАТЬ 's')
+// Get all likes for a post
 router.get('/:postId/like', async (req, res, next) => {
   try {
     const postId = Number(req.params.postId);
@@ -80,16 +82,16 @@ router.get('/:postId/like', async (req, res, next) => {
   }
 });
 
-// Добавление лайка к посту (УБРАТЬ 's')
+// Like/dislike a post
 router.post('/:postId/like', auth, pc.like);
 
-// Удаление лайка поста (УБРАТЬ 's')
+// Remove like from post
 router.delete('/:postId/like', auth, pc.deleteLike);
 
-// ОТСУТСТВУЕТ: GET /api/posts/:post_id/categories
+// Get categories associated with a post
 router.get('/:postId/categories', pc.getPostCategories);
 
-// Блокировка/разблокировка поста (только для админов)
+// Lock/unlock post (admin only)
 router.patch('/:postId/lock', auth, admin, pc.togglePostLock);
 
 module.exports = router;

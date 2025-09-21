@@ -1,7 +1,10 @@
+const pool = require('../config/database');
+
 async function getUserStats(req, res, next) {
   try {
     const userId = Number(req.params.userId);
     
+    // Get posts statistics with conditional counting and average likes calculation
     const [postsStats] = await pool.query(`
       SELECT 
         COUNT(*) as total_posts,
@@ -17,6 +20,7 @@ async function getUserStats(req, res, next) {
       FROM comments WHERE author_id = ?
     `, [userId]);
     
+    // Count likes/dislikes given by user using conditional aggregation
     const [likesStats] = await pool.query(`
       SELECT 
         COUNT(*) as total_likes_given,
@@ -37,3 +41,7 @@ async function getUserStats(req, res, next) {
     next(err);
   }
 }
+
+module.exports = {
+  getUserStats
+};

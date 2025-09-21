@@ -24,6 +24,7 @@ async function getCategory(req, res, next) {
   try {
     const categoryId = Number(req.params.categoryId);
     const [categories] = await pool.query('SELECT * FROM categories WHERE id = ?', [categoryId]);
+    // Check if category exists
     if (!categories.length) return res.status(404).json({ success: false, error: 'Category not found' });
     res.json({ success: true, category: categories[0] });
   } catch (err) {
@@ -55,6 +56,7 @@ async function deleteCategory(req, res, next) {
 async function getPostsByCategory(req, res, next) {
   try {
     const categoryId = Number(req.params.categoryId);
+    // Join posts with categories through many-to-many relationship
     const query = `
       SELECT p.* FROM posts p
       JOIN post_categories pc ON p.id = pc.post_id

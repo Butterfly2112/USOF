@@ -9,12 +9,13 @@ const path = require('path');
 
 const upload = multer({ dest: (process.env.UPLOAD_DIR || 'uploads') });
 
-// Получение списка пользователей (ДОЛЖНО БЫТЬ ПУБЛИЧНЫМ)
-router.get('/', userCtrl.listUsers); // убрать auth, admin
+// Public endpoint - get list of all users
+router.get('/', userCtrl.listUsers);
 
-// Загрузка аватара (ПЕРВЫМ)
+// Update avatar - must be before /:userId routes to avoid conflicts
 router.patch('/avatar', auth, upload.single('profilePicture'), async (req, res, next) => {
   try {
+    // Process uploaded file and create relative path
     if (req.file) {
       const relPath = path.join(process.env.UPLOAD_DIR || 'uploads', req.file.filename);
       req.body.profilePicture = '/' + relPath;
@@ -25,15 +26,16 @@ router.patch('/avatar', auth, upload.single('profilePicture'), async (req, res, 
   }
 });
 
-// Создание пользователя (только для админов)
+// Admin only - create new user
 router.post('/', auth, admin, userCtrl.createUser);
 
-// Получение профиля пользователя (ПОСЛЕ /avatar)
+// Get user profile (must be after /avatar route)
 router.get('/:userId', auth, userCtrl.getProfile);
 
-// Остальные маршруты с :userId
+// Update user profile with optional file upload
 router.patch('/:userId', auth, upload.single('profilePicture'), async (req, res, next) => {
   try {
+    // Handle profile picture upload if provided
     if (req.file) {
       const relPath = path.join(process.env.UPLOAD_DIR || 'uploads', req.file.filename);
       req.body.profilePicture = '/' + relPath;
@@ -44,6 +46,7 @@ router.patch('/:userId', auth, upload.single('profilePicture'), async (req, res,
   }
 });
 
+// Delete user (author or admin only)
 router.delete('/:userId', auth, userCtrl.deleteUser);
 
 module.exports = router;

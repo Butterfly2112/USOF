@@ -1,14 +1,15 @@
-// models/like.js
 const pool = require('../config/database');
 
 async function toggleLike({ authorId, postId = null, commentId = null, type = 'like' }) {
-  // only one of postId/commentId allowed
+  // Ensure only one of postId/commentId is provided
   const targetCol = postId ? 'post_id' : 'comment_id';
   const targetId = postId || commentId;
-  // check existing
+  
+  // Check if user already has a like/dislike on this target
   const [rows] = await pool.query(`SELECT * FROM likes WHERE author_id = ? AND ${targetCol} = ? LIMIT 1`, [authorId, targetId]);
+  
   if (rows[0]) {
-    // if same type -> remove (toggle off); if different -> update
+    // If same type -> remove (toggle off); if different type -> update
     if (rows[0].type === type) {
       await pool.query(`DELETE FROM likes WHERE id = ?`, [rows[0].id]);
       return { action: 'removed' };
@@ -17,6 +18,7 @@ async function toggleLike({ authorId, postId = null, commentId = null, type = 'l
       return { action: 'updated' };
     }
   } else {
+    // Create new like/dislike
     const [res] = await pool.query(`INSERT INTO likes (author_id, ${targetCol}, type, publishDate) VALUES (?, ?, ?, ?)`, [authorId, targetId, type, new Date()]);
     return { action: 'created', id: res.insertId };
   }

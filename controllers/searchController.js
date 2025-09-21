@@ -1,13 +1,17 @@
+const pool = require('../config/database');
+
 async function searchPosts(req, res, next) {
   try {
     const { q, page = 1, pageSize = 10, sort = 'relevance' } = req.query;
     const offset = (page - 1) * pageSize;
     
+    // Validate search query length
     if (!q || q.trim().length < 2) {
       return res.status(400).json({ success: false, error: 'Search query too short' });
     }
     
     const searchTerm = `%${q.trim()}%`;
+    // Determine sorting order based on sort parameter
     const orderBy = sort === 'date' ? 'p.publish_date DESC' : 
                    sort === 'likes' ? 'likes_count DESC' : 
                    'relevance_score DESC';
@@ -30,6 +34,7 @@ async function searchPosts(req, res, next) {
       LIMIT ? OFFSET ?
     `;
     
+    // Pass search term 4 times: 2 for relevance calculation, 2 for WHERE clause
     const [results] = await pool.query(query, [
       searchTerm, searchTerm, searchTerm, searchTerm, pageSize, offset
     ]);
@@ -39,3 +44,7 @@ async function searchPosts(req, res, next) {
     next(err);
   }
 }
+
+module.exports = {
+  searchPosts
+};
