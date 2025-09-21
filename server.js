@@ -29,6 +29,10 @@ app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/comments', commentRoutes);
+app.use('/api/favorites', require('./routes/favorites'));
+app.use('/api/subscriptions', require('./routes/subscriptions'));
+app.use('/api/search', require('./routes/search'));
+app.use('/api/stats', require('./routes/stats'));
 
 // health
 app.get('/health', (req, res) => res.json({ ok: true }));

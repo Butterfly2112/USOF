@@ -1,0 +1,72 @@
+const pool = require('../config/database');
+
+async function addToFavorites(req, res, next) {
+  try {
+    const userId = req.user.id;
+    const postId = Number(req.params.postId);
+    
+    // Проверить существование поста
+    const [posts] = await pool.query('SELECT id FROM posts WHERE id = ? AND status = "active"', [postId]);
+    if (!posts.length) {
+      return res.status(404).json({ success: false, error: 'Post not found' });
+    }
+    
+    // Добавить в избранное (игнорировать дубликаты)
+    await pool.query(
+      'INSERT IGNORE INTO user_favorites (user_id, post_id) VALUES (?, ?)',
+      [userId, postId]
+    );
+    
+    res.json({ success: true, message: 'Added to favorites' });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function removeFromFavorites(req, res, next) {
+  try {
+    const userId = req.user.id;
+    const postId = Number(req.params.postId);
+    
+    await pool.query(
+      'DELETE FROM user_favorites WHERE user_id = ? AND post_id = ?',
+      [userId, postId]
+    );
+    
+    res.json({ success: true, message: 'Removed from favorites' });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getFavorites(req, res, next) {
+  try {
+    const userId = req.user.id;
+    const { page = 1, pageSize = 10 } = req.query;
+    const offset = (page - 1) * pageSize;
+    
+    const query = `
+      SELECT p.*, u.login as authorLogin, u.fullName as authorName,
+        (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id AND l.type = 'like') as likesCount,
+        (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id AND l.type = 'dislike') as dislikesCount,
+        uf.created_at as favorited_at
+      FROM user_favorites uf
+      JOIN posts p ON uf.post_id = p.id
+      JOIN users u ON p.author_id = u.id
+      WHERE uf.user_id = ? AND p.status = 'active'
+      ORDER BY uf.created_at DESC
+      LIMIT ? OFFSET ?
+    `;
+    
+    const [favorites] = await pool.query(query, [userId, pageSize, offset]);
+    res.json({ success: true, favorites });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = {
+  addToFavorites,
+  removeFromFavorites,
+  getFavorites
+};

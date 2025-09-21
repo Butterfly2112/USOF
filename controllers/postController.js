@@ -2,6 +2,7 @@ const postModel = require('../models/post');
 const commentModel = require('../models/comment');
 const likeModel = require('../models/like');
 const pool = require('../config/database');
+const { createNotification } = require('./subscriptionController');
 
 async function createPost(req, res, next) {
   try {
@@ -52,7 +53,12 @@ async function updatePost(req, res, next) {
     const allowed = ['title', 'content', 'status'];
     const fields = {};
     for (const a of allowed) if (req.body[a] !== undefined) fields[a] = req.body[a];
-    if (Object.keys(fields).length) await postModel.updatePost(id, fields);
+    if (Object.keys(fields).length) {
+      await postModel.updatePost(id, fields);
+      // Отправить уведомления подписчикам
+      await createNotification('post_updated', id, req.user.id, 
+        `Post "${postRow.title}" was updated`);
+    }
 
     // categories update (optional)
     if (req.body.categories) {
@@ -84,8 +90,10 @@ async function addComment(req, res, next) {
     const { content } = req.body;
     const post = await postModel.getPostById(postId);
     if (!post || post.status !== 'active') return res.status(400).json({ success: false, error: 'Cannot comment' });
-    const id = await commentModel.createComment({ authorId: req.user.id, postId, content });
-    res.json({ success: true, commentId: id });
+    const commentId = await commentModel.createComment({ authorId: req.user.id, postId, content });
+    await createNotification('new_comment', postId, req.user.id, 
+      `New comment added to "${post.title}"`);
+    res.json({ success: true, commentId });
   } catch (err) { next(err); }
 }
 

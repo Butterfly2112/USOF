@@ -10,6 +10,9 @@ DROP TABLE IF EXISTS posts;
 DROP TABLE IF EXISTS password_resets;
 DROP TABLE IF EXISTS categories;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS user_favorites;
+DROP TABLE IF EXISTS post_subscriptions;
+DROP TABLE IF EXISTS notifications;
 
 -- users table (all required fields included)
 CREATE TABLE users (
@@ -103,6 +106,43 @@ CREATE TABLE likes (
   FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE,
   UNIQUE KEY unique_like (author_id, post_id, comment_id),
   CHECK ((post_id IS NOT NULL AND comment_id IS NULL) OR (post_id IS NULL AND comment_id IS NOT NULL))
+);
+
+-- user_favorites table (user_id, post_id as required)
+CREATE TABLE user_favorites (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  post_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_favorite (user_id, post_id)
+);
+
+-- post_subscriptions table (user_id, post_id as required)
+CREATE TABLE post_subscriptions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  post_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_subscription (user_id, post_id)
+);
+
+-- notifications table (user_id, type, post_id, triggered_by_user_id as required)
+CREATE TABLE notifications (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  type ENUM('post_updated', 'new_comment', 'post_liked') NOT NULL,
+  post_id INT NOT NULL,
+  triggered_by_user_id INT NOT NULL,
+  message TEXT NOT NULL,
+  is_read BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+  FOREIGN KEY (triggered_by_user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Trigger to update user rating automatically
