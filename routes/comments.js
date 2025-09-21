@@ -21,4 +21,10 @@ router.post('/:commentId/likes', auth, async (req, res, next) => {
 // Получение всех лайков под комментарием
 router.get('/:commentId/likes', auth, cc.getCommentLikes);
 
+// ОТСУТСТВУЕТ: GET /api/comments/:comment_id
+router.get('/:commentId', cc.getComment);
+
+// ОТСУТСТВУЕТ: DELETE /api/comments/:comment_id/like  
+router.delete('/:commentId/likes', auth, cc.deleteCommentLike);
+
 module.exports = router;

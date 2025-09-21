@@ -54,8 +54,8 @@ router.post('/', auth, upload.array('images', 6), async (req, res, next) => {
   }
 });
 
-// Получение поста по ID
-router.get('/:postId', auth, pc.getPost);
+// Получение поста по ID (ДОЛЖНО БЫТЬ ПУБЛИЧНЫМ)
+router.get('/:postId', pc.getPost); // убрать auth
 
 // Обновление поста
 router.patch('/:postId', auth, pc.updatePost);
@@ -82,5 +82,11 @@ router.get('/:postId/likes', async (req, res, next) => {
 
 // Добавление лайка к посту
 router.post('/:postId/likes', auth, pc.like);
+
+// ОТСУТСТВУЕТ: GET /api/posts/:post_id/categories
+router.get('/:postId/categories', pc.getPostCategories);
+
+// ОТСУТСТВУЕТ: DELETE /api/posts/:post_id/like
+router.delete('/:postId/likes', auth, pc.deleteLike);
 
 module.exports = router;

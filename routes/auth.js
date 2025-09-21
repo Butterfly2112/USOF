@@ -20,6 +20,9 @@ router.post('/request-reset', authCtrl.requestPasswordReset);
 // Сброс пароля
 router.post('/reset-password', authCtrl.resetPassword);
 
+// Подтверждение сброса пароля
+router.post('/password-reset/:confirm_token', authCtrl.confirmPasswordReset);
+
 // Выход из системы
 router.post('/logout', authCtrl.logout);
 

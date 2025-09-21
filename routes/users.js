@@ -12,26 +12,7 @@ const upload = multer({ dest: (process.env.UPLOAD_DIR || 'uploads') });
 // Получение списка пользователей (только для админов)
 router.get('/', auth, admin, userCtrl.listUsers);
 
-// Получение профиля пользователя
-router.get('/:userId', auth, userCtrl.getProfile);
-
-// Создание пользователя (только для админов)
-router.post('/', auth, admin, userCtrl.createUser);
-
-// Обновление профиля пользователя (включая аватар)
-router.patch('/:userId', auth, upload.single('profilePicture'), async (req, res, next) => {
-  try {
-    if (req.file) {
-      const relPath = path.join(process.env.UPLOAD_DIR || 'uploads', req.file.filename);
-      req.body.profilePicture = '/' + relPath;
-    }
-    await userCtrl.updateProfile(req, res, next);
-  } catch (err) {
-    next(err);
-  }
-});
-
-// Загрузка аватара через отдельный роут
+// Загрузка аватара (ПЕРВЫМ)
 router.patch('/avatar', auth, upload.single('profilePicture'), async (req, res, next) => {
   try {
     if (req.file) {
@@ -44,7 +25,25 @@ router.patch('/avatar', auth, upload.single('profilePicture'), async (req, res, 
   }
 });
 
-// Удаление пользователя
+// Создание пользователя (только для админов)
+router.post('/', auth, admin, userCtrl.createUser);
+
+// Получение профиля пользователя (ПОСЛЕ /avatar)
+router.get('/:userId', auth, userCtrl.getProfile);
+
+// Остальные маршруты с :userId
+router.patch('/:userId', auth, upload.single('profilePicture'), async (req, res, next) => {
+  try {
+    if (req.file) {
+      const relPath = path.join(process.env.UPLOAD_DIR || 'uploads', req.file.filename);
+      req.body.profilePicture = '/' + relPath;
+    }
+    await userCtrl.updateProfile(req, res, next);
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.delete('/:userId', auth, userCtrl.deleteUser);
 
 module.exports = router;
