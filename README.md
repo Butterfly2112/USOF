@@ -1,4 +1,4 @@
-# USOF (User Stack Overflow Forum) API
+# USOF API
 
 A comprehensive forum API built with Node.js, Express, and MySQL. This RESTful API provides all the functionality needed for a modern forum platform with user management, posts, comments, categories, favorites, subscriptions, and real-time notifications.
 
@@ -63,10 +63,7 @@ A comprehensive forum API built with Node.js, Express, and MySQL. This RESTful A
 5. **Start the server**
    ```bash
    # Development
-   npm run dev
-
-   # Production
-   npm start
+   node server.js
    ```
 
 The API will be available at `http://localhost:4000`

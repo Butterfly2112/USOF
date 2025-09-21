@@ -1,25 +1,25 @@
 const jwt = require('jsonwebtoken');
-const pool = require('../config/database');
-
-const JWT_SECRET = process.env.JWT_SECRET || 'secret';
+const userModel = require('../models/user');
 
 async function authMiddleware(req, res, next) {
   try {
-    const authHeader = req.headers.authorization || '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-    if (!token) return res.status(401).json({ success: false, error: 'No token provided' });
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, error: 'No token provided' });
+    }
 
-    const payload = jwt.verify(token, JWT_SECRET);
-    // fetch user basic info
-    const [rows] = await pool.query('SELECT id, login, email, fullName, role, profilePicture FROM users WHERE id = ?', [payload.id]);
-    if (!rows[0]) return res.status(401).json({ success: false, error: 'User not found' });
-    req.user = rows[0];
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    
+    const user = await userModel.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({ success: false, error: 'Invalid token' });
+    }
+
+    req.user = { id: user.id, role: user.role, login: user.login };
     next();
   } catch (err) {
-    if (err.name === 'TokenExpiredError') {
-      return res.status(401).json({ success: false, error: 'Token expired' });
-    }
-    return res.status(401).json({ success: false, error: 'Invalid token' });
+    res.status(401).json({ success: false, error: 'Invalid token' });
   }
 }
 

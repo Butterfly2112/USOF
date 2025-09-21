@@ -1,12 +1,26 @@
 function errorHandler (err, req, res, next) {
-  console.error(err);
-  const status = err.status || 500;
-  const msg = err.message || 'Internal Server Error';
-  const isProduction = process.env.NODE_ENV === 'production';
-  res.status(status).json({
-    success: false,
-    error: msg,
-    details: isProduction ? null : err.details || null
+  console.error('Error:', err);
+  
+  // Handle specific error types
+  if (err.code === 'ER_DUP_ENTRY') {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'Duplicate entry - resource already exists' 
+    });
+  }
+  
+  if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'Referenced resource not found' 
+    });
+  }
+
+  // Default error response
+  res.status(500).json({ 
+    success: false, 
+    error: 'Internal server error',
+    details: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 }
 

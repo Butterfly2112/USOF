@@ -1,7 +1,13 @@
 CREATE DATABASE IF NOT EXISTS usof_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE usof_db;
 
+-- Disable foreign key checks to allow dropping tables in any order
+SET FOREIGN_KEY_CHECKS = 0;
+
 -- Drop tables if they exist (for clean setup)
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS post_subscriptions;
+DROP TABLE IF EXISTS user_favorites;
 DROP TABLE IF EXISTS likes;
 DROP TABLE IF EXISTS comments;
 DROP TABLE IF EXISTS post_categories;
@@ -9,9 +15,9 @@ DROP TABLE IF EXISTS posts;
 DROP TABLE IF EXISTS password_resets;
 DROP TABLE IF EXISTS categories;
 DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS user_favorites;
-DROP TABLE IF EXISTS post_subscriptions;
-DROP TABLE IF EXISTS notifications;
+
+-- Re-enable foreign key checks
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- users table (all required fields included)
 CREATE TABLE users (
@@ -183,7 +189,7 @@ BEGIN
 END//
 DELIMITER ;
 
--- Sample data with proper password hashing (you should hash these properly in your app)
+-- Sample data with proper password hashing (password is "password" for both users)
 INSERT INTO users (login, password, fullName, email, role, email_verified) VALUES
   ('admin', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrator', 'admin@example.com', 'admin', TRUE),
   ('user1', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'John Doe', 'user1@example.com', 'user', TRUE);
