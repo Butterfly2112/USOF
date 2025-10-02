@@ -3,8 +3,10 @@
 A comprehensive forum API built with Node.js, Express, and MySQL. RESTful API for a modern question-answer platform similar to Stack Overflow.
 
 ## 📸 Testing with Postman
-![alt text](image.png)
-![alt text](image-1.png)
+<img width="761" height="462" alt="image" src="https://github.com/user-attachments/assets/92024de5-ae77-4461-88a0-d0618822d76e" />
+
+<img width="763" height="527" alt="image" src="https://github.com/user-attachments/assets/38c40c7e-e7ed-42a8-8214-240480aaf1d5" />
+
 ### Postman Setup Guide
 
 #### 1. Install Postman
