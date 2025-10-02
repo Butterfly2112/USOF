@@ -1,297 +1,237 @@
 # USOF API
 
-A comprehensive forum API built with Node.js, Express, and MySQL. This RESTful API provides all the functionality needed for a modern forum platform with user management, posts, comments, categories, favorites, subscriptions, and real-time notifications.
+A comprehensive forum API built with Node.js, Express, and MySQL. RESTful API for a modern question-answer platform similar to Stack Overflow.
 
-## 🚀 Features
+## 📸 Testing with Postman
+![alt text](image.png)
+![alt text](image-1.png)
+### Postman Setup Guide
 
-### Core Functionality
-- **User Authentication & Authorization** - JWT-based auth with role-based access control
-- **Posts Management** - Create, read, update, delete posts with rich content
-- **Comments System** - Nested commenting with likes/dislikes
-- **Categories** - Organize posts by categories with many-to-many relationships
-- **Like/Dislike System** - Users can like/dislike posts and comments
-- **User Profiles** - Complete user management with avatars and statistics
+#### 1. Install Postman
+- Download from [postman.com](https://www.postman.com/downloads/)
+- Create free account (optional but recommended)
 
-### Advanced Features
-- **Favorites System** - Users can bookmark posts for quick access
-- **Subscriptions & Notifications** - Subscribe to posts and get notified of updates
-- **Advanced Search** - Full-text search with relevance scoring
-- **Post Filtering & Sorting** - Filter by categories, dates, status; sort by likes/date
-- **Content Moderation** - Admin tools to lock posts/comments
-- **File Uploads** - Support for profile pictures and post images
-- **User Statistics** - Detailed analytics for user activity
+#### 2. Create Collection
+- New → Collection → Name: "USOF API"
 
-### Security & Performance
-- **Password Reset** - Secure email-based password recovery
-- **Input Validation** - Comprehensive validation using express-validator
-- **SQL Injection Protection** - Parameterized queries throughout
-- **Auto Rating System** - Automatic user rating calculation via database triggers
-- **Pagination** - Efficient data loading with configurable page sizes
+#### 3. Setup Environment
+- Environments → New Environment → Name: "USOF Local"
+- Variables:
+  - `baseUrl` = `http://localhost:4000`
+  - `token` = (leave empty, will be filled after login)
 
+#### 4. Essential Test Requests
 
-## 🛠 Installation
+**Health Check**
+```
+GET {{baseUrl}}/health
+```
+
+**Admin Login** (Save token from response!)
+```
+POST {{baseUrl}}/api/auth/login
+Headers: Content-Type: application/json
+Body: 
+{
+  "loginOrEmail": "admin",
+  "password": "password"
+}
+```
+
+**Get All Posts**
+```
+GET {{baseUrl}}/api/posts
+```
+
+**Create Post** (Requires token)
+```
+POST {{baseUrl}}/api/posts
+Headers: 
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+Body:
+{
+  "title": "Test Post",
+  "content": "Test content",
+  "categories": [1, 2]
+}
+```
+
+**Add Comment** (Requires token)
+```
+POST {{baseUrl}}/api/posts/1/comments
+Headers: 
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+Body:
+{
+  "content": "This is a test comment"
+}
+```
+
+## 🚀 Key Features
+
+- **Authentication & Authorization** - JWT-based auth with admin/user roles
+- **Posts & Comments** - Full CRUD operations with likes/dislikes
+- **Categories & Search** - Organize and find content easily
+- **Advanced Features** - Favorites, subscriptions, notifications
+- **Admin Panel** - Content moderation and user management
+- **Security** - Password hashing, input validation, SQL injection protection
+
+## 🛠 Installation & Setup
 
 ### Prerequisites
-- **Node.js** (v16.0.0 or higher)
-- **MySQL** (v8.0 or higher)
-- **npm** (v7.0.0 or higher)
+- Node.js (v16+)
+- MySQL (v8+)
+- npm (v7+)
 
 ### Quick Start
+```bash
+# 1. Clone repository
+git clone https://github.com/Butterfly2112/USOF.git
+cd USOF
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Butterfly2112/USOF.git
-   cd USOF
-   ```
+# 2. Install dependencies  
+npm install
 
-2. **Install dependencies**
-   ```bash
-    npm install express mysql2 bcryptjs jsonwebtoken dotenv multer express-validator nodemailer uuid
-   ```
+# 3. Setup environment
+cp  .env
+# Edit .env with your database credentials
 
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
+# 4. Initialize database
+mysql -u root -p < init.sql
 
-4. **Set up the database**
-   ```bash
-   mysql -u root -p < init.sql
-   ```
+# 5. Start server
+node server.js
+```
 
-5. **Start the server**
-   ```bash
-   # Development
-   node server.js
-   ```
+Server runs on `http://localhost:4000`
 
-The API will be available at `http://localhost:4000`
-
-## 🔧 Environment Setup
-
-Create a `.env` file in the root directory:
-
+### Environment Variables (.env)
 ```env
-# Server Configuration
 PORT=4000
-NODE_ENV=development
-BASE_URL=http://localhost:4000
-
-# Database Configuration
 DB_HOST=localhost
-DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=your_password
 DB_NAME=usof_db
-
-# JWT Configuration
-JWT_SECRET=your_super_secret_jwt_key_here
-JWT_EXPIRES_IN=7d
-
-# Email Configuration (for password reset)
+JWT_SECRET=your_secret_key
 EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
 EMAIL_USER=your-email@gmail.com
 EMAIL_PASS=your-app-password
-
-# File Upload Configuration
-UPLOAD_DIR=uploads
-MAX_FILE_SIZE=5242880
 ```
 
-### Core Endpoints
+## 🏗️ Architecture
 
-#### Authentication
+**MVC Pattern**: Models (data) → Controllers (logic) → Routes (endpoints)
+
+**Tech Stack**: Node.js + Express + MySQL + JWT
+
+**Security**: Bcrypt passwords, SQL injection protection, input validation
+
+## 📋 Development Progress (CBL Stages)
+
+✅ **Stage 1**: Database design & setup  
+✅ **Stage 2**: Authentication system  
+✅ **Stage 3**: Core API endpoints  
+✅ **Stage 4**: Advanced features (favorites, notifications)  
+✅ **Stage 5**: Security & performance optimization
+
+## 🔗 API Endpoints
+
+### Authentication
 ```http
-POST /api/auth/register          # User registration
-POST /api/auth/login             # User login
+POST /api/auth/register    # User registration
+POST /api/auth/login       # User login
+POST /api/auth/logout      # User logout
 POST /api/auth/password-reset    # Request password reset
-POST /api/auth/reset-password    # Reset password with token
-POST /api/auth/logout            # User logout
 ```
 
-#### Users
+### Users
 ```http
-GET    /api/users                # Get all users (public)
-POST   /api/users                # Create user (admin only)
-GET    /api/users/:id            # Get user profile
-PATCH  /api/users/:id            # Update user profile
-DELETE /api/users/:id            # Delete user
-PATCH  /api/users/avatar         # Update user avatar
+GET    /api/users          # Get all users
+POST   /api/users          # Create user (admin only)
+GET    /api/users/:id      # Get user profile
+PATCH  /api/users/:id      # Update user
+DELETE /api/users/:id      # Delete user
+PATCH  /api/users/avatar   # Update avatar
 ```
 
-#### Posts
+### Posts
 ```http
-GET    /api/posts                # List posts with filtering/sorting
-POST   /api/posts                # Create new post
-GET    /api/posts/:id            # Get specific post
-PATCH  /api/posts/:id            # Update post (author/admin)
-DELETE /api/posts/:id            # Delete post (author/admin)
-PATCH  /api/posts/:id/lock       # Lock/unlock post (admin only)
+GET    /api/posts          # List posts with filtering
+POST   /api/posts          # Create new post
+GET    /api/posts/:id      # Get specific post
+PATCH  /api/posts/:id      # Update post
+DELETE /api/posts/:id      # Delete post
 ```
 
-#### Comments
+### Comments
 ```http
 GET    /api/posts/:id/comments   # Get post comments
-POST   /api/posts/:id/comments   # Add comment to post
-GET    /api/comments/:id         # Get specific comment
-PATCH  /api/comments/:id         # Update comment (author only)
-DELETE /api/comments/:id         # Delete comment (author only)
-PATCH  /api/comments/:id/lock    # Lock/unlock comment (admin only)
-PATCH  /api/comments/:id/status  # Change comment status
+POST   /api/posts/:id/comments   # Add comment
+GET    /api/comments/:id         # Get comment
+PATCH  /api/comments/:id         # Update comment
+DELETE /api/comments/:id         # Delete comment
 ```
 
-#### Likes
+### Categories
 ```http
-POST   /api/posts/:id/like       # Like/dislike post
-GET    /api/posts/:id/like       # Get post likes
-DELETE /api/posts/:id/like       # Remove like from post
-POST   /api/comments/:id/like    # Like/dislike comment
-DELETE /api/comments/:id/like    # Remove like from comment
+GET    /api/categories           # List categories
+POST   /api/categories           # Create category (admin)
+GET    /api/categories/:id       # Get category
+PATCH  /api/categories/:id       # Update category (admin)
+DELETE /api/categories/:id       # Delete category (admin)
 ```
 
-#### Categories
-```http
-GET    /api/categories           # List all categories
-POST   /api/categories           # Create category (admin only)
-GET    /api/categories/:id       # Get specific category
-PATCH  /api/categories/:id       # Update category (admin only)
-DELETE /api/categories/:id       # Delete category (admin only)
-GET    /api/categories/:id/posts # Get posts by category
-```
-
-#### Advanced Features
+### Advanced Features
 ```http
 # Favorites
-GET    /api/favorites            # Get user's favorite posts
-POST   /api/favorites/:postId    # Add post to favorites
+GET    /api/favorites            # Get user's favorites
+POST   /api/favorites/:postId    # Add to favorites
 DELETE /api/favorites/:postId    # Remove from favorites
 
 # Subscriptions & Notifications
 POST   /api/subscriptions/:postId    # Subscribe to post
-DELETE /api/subscriptions/:postId    # Unsubscribe from post
-GET    /api/notifications            # Get user notifications
-PATCH  /api/notifications/:id/read   # Mark notification as read
+GET    /api/subscriptions/notifications # Get notifications
 
-# Search & Statistics
+# Search
 GET    /api/search/posts?q=query     # Search posts
-GET    /api/stats/users/:id          # Get user statistics
 ```
 
-### Request/Response Examples
+## 🎮 Test Accounts
 
-#### Register User
-```http
-POST /api/auth/register
-Content-Type: application/json
-
-{
-  "login": "john_doe",
-  "password": "securepassword123",
-  "fullName": "John Doe",
-  "email": "john@example.com"
-}
+### Admin Account
+```
+Login: admin
+Password: password
+Email: admin@example.com
 ```
 
-#### Create Post
-```http
-POST /api/posts
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "title": "How to use async/await in JavaScript",
-  "content": "Here's a comprehensive guide...",
-  "categories": [1, 2, 3],
-  "status": "active"
-}
+### User Accounts
+```
+Login: user1, user2, user3, user4
+Password: password
 ```
 
-#### Search Posts
-```http
-GET /api/search/posts?q=javascript&sort=relevance&page=1&pageSize=10
+## 🚨 Troubleshooting
+
+**Database Connection Error**: Ensure MySQL is running and credentials are correct in `.env`
+
+**Port in Use**: Change PORT in `.env` or kill process using port 4000
+
+**Schema Not Found**: Run `mysql -u root -p < init.sql`
+
+## 📁 Project Structure
+
 ```
-
-#### Filter Posts
-```http
-GET /api/posts?categories=1,2&dateFrom=2024-01-01&sort=likes&page=1
-```
-
-### Response Format
-All responses follow this structure:
-```json
-{
-  "success": true|false,
-  "data": {...},
-  "error": "Error message if success=false",
-  "details": "Additional error details (development only)"
-}
-```
-
-## 🎯 Advanced Features Deep Dive
-
-### Favorites System
-Users can bookmark posts for quick access:
-- Add/remove posts from favorites
-- Paginated favorites list
-- Duplicate prevention with UNIQUE constraints
-
-### Subscriptions & Notifications
-Real-time engagement system:
-- Subscribe to posts for updates
-- Automatic notifications on post changes/new comments
-- Mark notifications as read/unread
-- Notification types: post_updated, new_comment, post_liked
-
-### Search Functionality
-Comprehensive search with relevance scoring:
-- Full-text search in post titles and content
-- Relevance scoring (title matches weighted higher)
-- Multiple sorting options (relevance, date, likes)
-- Pagination support
-
-### Content Moderation
-Admin tools for community management:
-- Lock/unlock posts and comments
-- Change content status (active/inactive)
-- Admin-only access to moderation tools
-- Track who locked content and when
-
-### User Statistics
-Detailed analytics for user engagement:
-- Total posts and active posts count
-- Average likes per post
-- Total comments made
-- Likes/dislikes given to others
-
-## 🧪 Testing
-
-### Manual Testing
-Use tools like Postman or curl to test endpoints:
-
-```bash
-# Register a new user
-curl -X POST http://localhost:4000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"login":"testuser","password":"password123","email":"test@example.com","fullName":"Test User"}'
-
-# Login
-curl -X POST http://localhost:4000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"loginOrEmail":"testuser","password":"password123"}'
-
-# Create a post (use token from login response)
-curl -X POST http://localhost:4000/api/posts \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
-  -d '{"title":"Test Post","content":"This is a test post","categories":[1]}'
-```
-
-### Health Check
-```bash
-curl http://localhost:4000/health
-# Expected response: {"ok":true}
+USOF/
+├── config/          # Database configuration
+├── controllers/     # Business logic
+├── middleware/      # Authentication & validation
+├── models/         # Data operations
+├── routes/         # API endpoints
+├── init.sql        # Database schema
+└── server.js       # Application entry
 ```
 
 **Made with ❤️**

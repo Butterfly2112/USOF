@@ -192,25 +192,48 @@ DELIMITER ;
 -- Sample data with proper password hashing (password is "password" for both users)
 INSERT INTO users (login, password, fullName, email, role, email_verified) VALUES
   ('admin', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrator', 'admin@example.com', 'admin', TRUE),
-  ('user1', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'John Doe', 'user1@example.com', 'user', TRUE);
+  ('user1', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'John Doe', 'user1@example.com', 'user', TRUE),
+  ('user2', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Jane Smith', 'user2@example.com', 'user', TRUE),
+  ('user3', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Bob Wilson', 'user3@example.com', 'user', TRUE),
+  ('user4', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Alice Brown', 'user4@example.com', 'user', TRUE);
 
 INSERT INTO categories (title, description) VALUES
   ('General', 'General discussion topics and questions'),
   ('Technology', 'Technology, programming and IT related discussions'),
-  ('Science', 'Scientific topics and research discussions');
+  ('Science', 'Scientific topics and research discussions'),
+  ('Web Development', 'Frontend and backend web development topics'),
+  ('Mobile Development', 'iOS, Android and cross-platform mobile development');
 
 INSERT INTO posts (author_id, title, content, status) VALUES
   (1, 'Welcome to USOF Platform', 'This is the first post on our question-answer platform. Feel free to ask questions and share knowledge!', 'active'),
-  (2, 'How to get started with programming?', 'I am new to programming and would like to know the best way to start learning. Any recommendations?', 'active');
+  (2, 'How to get started with programming?', 'I am new to programming and would like to know the best way to start learning. Any recommendations?', 'active'),
+  (3, 'Best practices for API design', 'What are the key principles to follow when designing RESTful APIs?', 'active'),
+  (4, 'React vs Vue.js comparison', 'Can someone explain the main differences between React and Vue.js frameworks?', 'active'),
+  (5, 'Database optimization tips', 'Looking for advice on optimizing MySQL database performance for large applications.', 'active'),
+  (1, 'Inactive post example', 'This post has been set to inactive status for demonstration purposes.', 'inactive');
 
 INSERT INTO post_categories (post_id, category_id) VALUES
   (1, 1),
-  (2, 2);
+  (2, 2),
+  (3, 2),
+  (3, 4),
+  (4, 4),
+  (5, 2),
+  (6, 1);
 
 INSERT INTO comments (author_id, post_id, content) VALUES
   (2, 1, 'Great platform! Looking forward to participating.'),
-  (1, 2, 'Welcome to the community! I recommend starting with Python or JavaScript.');
+  (1, 2, 'Welcome to the community! I recommend starting with Python or JavaScript.'),
+  (3, 2, 'I agree with Python recommendation. It has great learning resources.'),
+  (4, 3, 'RESTful design should follow standard HTTP methods and status codes.'),
+  (5, 4, 'Both frameworks are excellent. Choice depends on project requirements.'),
+  (2, 5, 'Consider indexing frequently queried columns and optimizing complex queries.');
 
 INSERT INTO likes (author_id, post_id, type) VALUES
   (2, 1, 'like'),
-  (1, 2, 'like');
+  (1, 2, 'like'),
+  (3, 2, 'like'),
+  (4, 3, 'like'),
+  (5, 4, 'like'),
+  (1, 5, 'like'),
+  (2, 3, 'dislike');
