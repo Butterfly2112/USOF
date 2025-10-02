@@ -222,18 +222,3 @@ Password: password
 **Port in Use**: Change PORT in `.env` or kill process using port 4000
 
 **Schema Not Found**: Run `mysql -u root -p < init.sql`
-
-## 📁 Project Structure
-
-```
-USOF/
-├── config/          # Database configuration
-├── controllers/     # Business logic
-├── middleware/      # Authentication & validation
-├── models/         # Data operations
-├── routes/         # API endpoints
-├── init.sql        # Database schema
-└── server.js       # Application entry
-```
-
-**Made with ❤️**
