@@ -16,11 +16,9 @@ async function getProfile(req, res, next) {
 
 async function updateProfile(req, res, next) {
   try {
-    // Only admin or profile owner can update
     const targetId = Number(req.params.userId);
     if (req.user.role !== 'admin' && req.user.id !== targetId) return res.status(403).json({ success: false, error: 'Forbidden' });
 
-    // Filter only allowed fields for update
     const fields = {};
     const allowed = ['fullName', 'email', 'profilePicture', 'role'];
     for (const k of allowed) if (req.body[k] !== undefined) fields[k] = req.body[k];
@@ -36,7 +34,6 @@ async function updateProfile(req, res, next) {
 async function deleteUser(req, res, next) {
   try {
     const targetId = Number(req.params.userId);
-    // Only admin or profile owner can delete
     if (req.user.role !== 'admin' && req.user.id !== targetId) return res.status(403).json({ success: false, error: 'Forbidden' });
     await userModel.deleteUser(targetId);
     res.json({ success: true });
@@ -47,7 +44,6 @@ async function deleteUser(req, res, next) {
 
 async function listUsers(req, res, next) {
   try {
-    // Public user list - hide sensitive data
     const [rows] = await pool.query(`
       SELECT id, login, fullName, profilePicture, rating, role, created_at 
       FROM users 
@@ -61,32 +57,59 @@ async function listUsers(req, res, next) {
 
 async function createUser(req, res, next) {
   try {
-    const { login, password, email, role = 'user' } = req.body;
-    // Hash password before storing
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const query = `
-      INSERT INTO users (login, password, email, role)
-      VALUES (?, ?, ?, ?)
-    `;
-    const [result] = await pool.query(query, [login, hashedPassword, email, role]);
-    res.json({ success: true, userId: result.insertId });
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
+    const { login, password, passwordConfirmation, email, fullName, role = 'user' } = req.body;
+    
+    if (password !== passwordConfirmation) {
+      return res.status(400).json({ success: false, error: 'Password confirmation does not match' });
+    }
+
+    const existingUser = await userModel.findByLoginOrEmail(login) || await userModel.findByLoginOrEmail(email);
+    if (existingUser) {
+      return res.status(400).json({ success: false, error: 'Login or email already exists' });
+    }
+
+    const user = await userModel.createUser({ 
+      login, 
+      password, 
+      fullName, 
+      email, 
+      role 
+    });
+    
+    const createdUser = await userModel.findById(user.id);
+    res.status(201).json({ success: true, user: createdUser });
   } catch (err) {
+    console.error('Create user error:', err);
     next(err);
   }
 }
 
 async function updateAvatar(req, res, next) {
   try {
-    // Users can only update their own avatar
     const userId = req.user.id;
     const { profilePicture } = req.body;
+    
+    if (!profilePicture) {
+      return res.status(400).json({ success: false, error: 'No profile picture provided' });
+    }
+    
     const query = `
       UPDATE users
       SET profilePicture = ?
       WHERE id = ?
     `;
     await pool.query(query, [profilePicture, userId]);
-    res.json({ success: true });
+    
+    res.json({ 
+      success: true, 
+      message: 'Avatar updated successfully',
+      profilePicture: profilePicture
+    });
   } catch (err) {
     next(err);
   }

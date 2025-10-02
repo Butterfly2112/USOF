@@ -1,5 +1,54 @@
 const pool = require('../config/database');
 
+async function search(req, res, next) {
+  try {
+    const { q, type = 'posts', page = 1, pageSize = 10, sort = 'relevance' } = req.query;
+    
+    // Validate search query length
+    if (!q || q.trim().length < 2) {
+      return res.status(400).json({ success: false, error: 'Search query too short' });
+    }
+    
+    // Route to appropriate search function based on type
+    switch (type.toLowerCase()) {
+      case 'posts':
+        return await searchPosts(req, res, next);
+      case 'users':
+        return await searchUsers(req, res, next);
+      default:
+        return res.status(400).json({ success: false, error: 'Invalid search type. Use: posts, users' });
+    }
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function searchUsers(req, res, next) {
+  try {
+    const { q, page = 1, pageSize = 10 } = req.query;
+    const offset = (page - 1) * pageSize;
+    const searchTerm = `%${q.trim()}%`;
+    
+    const query = `
+      SELECT id, login, email, fullName, role, created_at
+      FROM users
+      WHERE login LIKE ? OR fullName LIKE ? OR email LIKE ?
+      ORDER BY 
+        CASE WHEN login LIKE ? THEN 1 ELSE 2 END,
+        login ASC
+      LIMIT ? OFFSET ?
+    `;
+    
+    const [results] = await pool.query(query, [
+      searchTerm, searchTerm, searchTerm, searchTerm, pageSize, offset
+    ]);
+    
+    res.json({ success: true, results, query: q, type: 'users' });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function searchPosts(req, res, next) {
   try {
     const { q, page = 1, pageSize = 10, sort = 'relevance' } = req.query;
@@ -39,12 +88,14 @@ async function searchPosts(req, res, next) {
       searchTerm, searchTerm, searchTerm, searchTerm, pageSize, offset
     ]);
     
-    res.json({ success: true, results, query: q });
+    res.json({ success: true, results, query: q, type: 'posts' });
   } catch (err) {
     next(err);
   }
 }
 
 module.exports = {
-  searchPosts
+  search,
+  searchPosts,
+  searchUsers
 };

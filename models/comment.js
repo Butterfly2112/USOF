@@ -3,7 +3,7 @@ const pool = require('../config/database');
 async function createComment({ authorId, postId, content, publishDate = null }) {
   // Use current date if publishDate not provided
   const pd = publishDate ? publishDate : new Date();
-  const [res] = await pool.query(`INSERT INTO comments (author_id, post_id, content, publishDate) VALUES (?, ?, ?, ?)`, [authorId, postId, content, pd]);
+  const [res] = await pool.query(`INSERT INTO comments (author_id, post_id, content, publish_date) VALUES (?, ?, ?, ?)`, [authorId, postId, content, pd]);
   return res.insertId;
 }
 
@@ -14,7 +14,7 @@ async function getCommentsByPost(postId) {
     FROM comments c
     JOIN users u ON u.id = c.author_id
     WHERE c.post_id = ?
-    ORDER BY c.publishDate ASC
+    ORDER BY c.publish_date ASC
   `, [postId]);
   return rows;
 }

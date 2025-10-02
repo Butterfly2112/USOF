@@ -14,12 +14,12 @@ async function toggleLike({ authorId, postId = null, commentId = null, type = 'l
       await pool.query(`DELETE FROM likes WHERE id = ?`, [rows[0].id]);
       return { action: 'removed' };
     } else {
-      await pool.query(`UPDATE likes SET type = ?, publishDate = ? WHERE id = ?`, [type, new Date(), rows[0].id]);
+      await pool.query(`UPDATE likes SET type = ?, publish_date = ? WHERE id = ?`, [type, new Date(), rows[0].id]);
       return { action: 'updated' };
     }
   } else {
     // Create new like/dislike
-    const [res] = await pool.query(`INSERT INTO likes (author_id, ${targetCol}, type, publishDate) VALUES (?, ?, ?, ?)`, [authorId, targetId, type, new Date()]);
+    const [res] = await pool.query(`INSERT INTO likes (author_id, ${targetCol}, type, publish_date) VALUES (?, ?, ?, ?)`, [authorId, targetId, type, new Date()]);
     return { action: 'created', id: res.insertId };
   }
 }

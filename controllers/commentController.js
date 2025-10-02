@@ -5,7 +5,6 @@ async function updateComment(req, res, next) {
   try {
     const commentId = Number(req.params.commentId);
     const { content } = req.body;
-    // Only allow users to update their own comments
     const query = `
       UPDATE comments
       SET content = ?
@@ -24,7 +23,6 @@ async function updateComment(req, res, next) {
 async function deleteComment(req, res, next) {
   try {
     const commentId = Number(req.params.commentId);
-    // Only allow users to delete their own comments
     const query = `
       DELETE FROM comments
       WHERE id = ? AND author_id = ?
@@ -56,7 +54,6 @@ async function getCommentLikes(req, res, next) {
 async function getComment(req, res, next) {
   try {
     const commentId = Number(req.params.commentId);
-    // Join with users table to get author information
     const [comments] = await pool.query(`
       SELECT c.*, u.login as author_name, u.fullName as author_fullname
       FROM comments c
@@ -79,13 +76,11 @@ async function toggleCommentLock(req, res, next) {
     const commentId = Number(req.params.commentId);
     const adminId = req.user.id;
     
-    // Get current lock status
     const [comments] = await pool.query('SELECT locked FROM comments WHERE id = ?', [commentId]);
     if (comments.length === 0) {
       return res.status(404).json({ success: false, error: 'Comment not found' });
     }
     
-    // Toggle lock status
     const newLockStatus = !comments[0].locked;
     const lockedBy = newLockStatus ? adminId : null;
     const lockedAt = newLockStatus ? new Date() : null;
@@ -126,12 +121,10 @@ async function updateCommentStatus(req, res, next) {
     const commentId = Number(req.params.commentId);
     const { status } = req.body;
     
-    // Validate status value
     if (!['active', 'inactive'].includes(status)) {
       return res.status(400).json({ success: false, error: 'Invalid status' });
     }
     
-    // Users can only change their own comments, admins can change any
     const query = req.user.role === 'admin' 
       ? 'UPDATE comments SET status = ? WHERE id = ?'
       : 'UPDATE comments SET status = ? WHERE id = ? AND author_id = ?';

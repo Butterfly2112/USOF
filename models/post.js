@@ -1,9 +1,8 @@
 const pool = require('../config/database');
 
 async function createPost({ authorId, title, content, status='active', publishDate = null }) {
-  // Use current date if publishDate not provided
   const pd = publishDate ? publishDate : new Date();
-  const [res] = await pool.query(`INSERT INTO posts (author_id, title, content, status, publishDate) VALUES (?, ?, ?, ?, ?)`, [authorId, title, content, status, pd]);
+  const [res] = await pool.query(`INSERT INTO posts (author_id, title, content, status, publish_date) VALUES (?, ?, ?, ?, ?)`, [authorId, title, content, status, pd]);
   return res.insertId;
 }
 
@@ -15,7 +14,6 @@ async function attachCategories(postId, categoryIds = []) {
 }
 
 async function updatePost(id, fields) {
-  // Build dynamic UPDATE query from fields object
   const cols = [], vals=[];
   for (const [k,v] of Object.entries(fields)) { cols.push(`${k} = ?`); vals.push(v); }
   vals.push(id);
@@ -27,7 +25,6 @@ async function deletePost(id) {
 }
 
 async function getPostById(id) {
-  // Join with users and calculate likes/dislikes counts
   const [rows] = await pool.query(`
     SELECT p.*, u.login as authorLogin, u.fullName as authorName,
       (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id AND l.type = 'like') as likesCount,
@@ -37,7 +34,6 @@ async function getPostById(id) {
     WHERE p.id = ?`, [id]);
   if (!rows[0]) return null;
   
-  // Fetch associated categories through many-to-many relationship
   const [cats] = await pool.query(`SELECT c.* FROM categories c JOIN post_categories pc ON c.id = pc.category_id WHERE pc.post_id = ?`, [id]);
   rows[0].categories = cats;
   return rows[0];
@@ -50,18 +46,19 @@ async function listPosts({ page=1, pageSize=10, sort='likes', categoryIds = [], 
   const vals = [];
   
   // Build WHERE conditions dynamically
-  if (status) { wh.push('p.status = ?'); vals.push(status); }
-  if (dateFrom) { wh.push('p.publishDate >= ?'); vals.push(dateFrom); }
-  if (dateTo) { wh.push('p.publishDate <= ?'); vals.push(dateTo); }
+  if (status !== null && status !== undefined) { wh.push('p.status = ?'); vals.push(status); }
+  if (dateFrom) { wh.push('p.publish_date >= ?'); vals.push(dateFrom); }
+  if (dateTo) { wh.push('p.publish_date <= ?'); vals.push(dateTo); }
   let whereSql = wh.length ? 'WHERE ' + wh.join(' AND ') : '';
 
   // Determine sort order: by date or by likes count
-  const order = (sort === 'date') ? 'p.publishDate DESC' : 'COALESCE(likes_count,0) DESC, p.publishDate DESC';
+  const order = (sort === 'date') ? 'p.publish_date DESC' : 'COALESCE(likes_count,0) DESC, p.publish_date DESC';
 
   // Add category filter using EXISTS for many-to-many relationship
-  if (categoryIds && categoryIds.length) {
-    whereSql += (whereSql ? ' AND ' : 'WHERE ') + `EXISTS (SELECT 1 FROM post_categories pc WHERE pc.post_id = p.id AND pc.category_id IN (?))`;
-    vals.push(categoryIds);
+  if (categoryIds && categoryIds.length > 0) {
+    const placeholders = categoryIds.map(() => '?').join(',');
+    whereSql += (whereSql ? ' AND ' : 'WHERE ') + `EXISTS (SELECT 1 FROM post_categories pc WHERE pc.post_id = p.id AND pc.category_id IN (${placeholders}))`;
+    vals.push(...categoryIds);
   }
 
   const sql = `

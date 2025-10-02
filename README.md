@@ -294,4 +294,4 @@ curl http://localhost:4000/health
 # Expected response: {"ok":true}
 ```
 
-**Made with ❤️ by [Your Name]**
+**Made with ❤️**
