@@ -46,7 +46,7 @@ export default function Categories(){
       <h2>Categories</h2>
 
       {auth.user ? (
-        <form onSubmit={onCreate} style={{display:'flex',gap:8,marginBottom:12}}>
+        <form className="category-create" onSubmit={onCreate} style={{display:'flex',gap:8,marginBottom:12,alignItems:'center'}}>
           <input id="category-title" name="title" placeholder="Title" value={title} onChange={e=>setTitle(e.target.value)} required />
           <input id="category-description" name="description" placeholder="Short description" value={description} onChange={e=>setDescription(e.target.value)} />
           <button className="btn" disabled={loading} type="submit">Create</button>

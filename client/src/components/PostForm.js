@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../api';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -19,6 +19,7 @@ export default function PostForm(){
   const [images, setImages] = useState([]);
   const [availableCategories, setAvailableCategories] = useState([]);
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
   useEffect(()=>{ if (postId) load(); }, [postId]);
   useEffect(()=>{
@@ -187,8 +188,8 @@ export default function PostForm(){
           ))}
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:12}}>
-          <input id="new-category" name="newCategory" placeholder="New category" value={newCategory} onChange={e=>setNewCategory(e.target.value)} />
-          <button type="button" className="btn" onClick={async ()=>{
+          <input id="new-category" name="newCategory" className="small-input" placeholder="New category" value={newCategory} onChange={e=>setNewCategory(e.target.value)} />
+          <button type="button" className="btn small" onClick={async ()=>{
             const nc = (newCategory || '').trim();
             if (!nc) return alert('Enter category title');
             try {
@@ -226,7 +227,8 @@ export default function PostForm(){
         </div>
         <label>Images (optional)</label>
         <div className="file-input-row">
-          <input id="images" type="file" accept="image/*" multiple onChange={onFiles} />
+          <input ref={fileInputRef} id="images" type="file" accept="image/*" multiple onChange={onFiles} style={{display:'none'}} />
+          <button type="button" className="btn small" onClick={()=>fileInputRef.current && fileInputRef.current.click()}>Вибрати файли</button>
           <div className="file-input-meta">{images && images.length > 0 ? `${images.length} file(s) selected` : 'Файл не вибрано'}</div>
         </div>
               {images && images.length > 0 && (

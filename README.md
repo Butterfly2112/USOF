@@ -22,22 +22,16 @@ DB_USER=root
 DB_PASSWORD=your_password
 DB_NAME=usof_db
 JWT_SECRET=your_jwt_secret
-```
 
-Optional for email/password reset:
-
-```
 EMAIL_HOST=smtp.example.com
 EMAIL_PORT=587
 EMAIL_USER=you@example.com
 EMAIL_PASS=app-password
 BASE_URL=http://localhost:4000
 
-Optional: enable sending email notifications to subscribers
-```
-EMAIL_NOTIFICATIONS=true    # set to 'true' to send email notifications when posts are updated or commented
-SEND_NOTIFICATION_EMAILS=true # alternative var name supported
-```
+
+EMAIL_NOTIFICATIONS=true   
+SEND_NOTIFICATION_EMAILS=true
 ```
 
 Client-specific environment (in `client/.env` or when running client):
@@ -47,59 +41,7 @@ REACT_APP_API_BASE=http://localhost:4000/api
 REACT_APP_UPLOAD_DIR=/uploads
 ```
 
-Note: If the client is run in dev mode, CRA proxies requests to the API (see `client/package.json` proxy setting).
-
 ---
-
-## Quick start (Windows PowerShell)
-
-Run these commands from the repository root. The examples below assume PowerShell on Windows and repository path `C:\Users\user\Desktop\USOF`.
-
-1) Install server dependencies
-
-```powershell
-cd C:\Users\user\Desktop\USOF
-npm install
-```
-
-2) Initialize the database
-```
-cd C:\Users\user\Desktop\USOF\client
-*** Begin simplified README
-
-# USOF — Unified Book-Discussion Forum (API + Client)
-
-Compact, practical README for local development and testing.
-
-## Environment (.env)
-Create `.env` in the project root and set these values (example):
-
-```env
-PORT=4000
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_NAME=usof_db
-JWT_SECRET=your_jwt_secret_here
-
-# SMTP (password reset + optional notifications)
-EMAIL_HOST=smtp.gmail.com
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-smtp-password   # use Gmail App Password if using Gmail
-EMAIL_PORT=587
-
-# App URLs
-BASE_URL=http://localhost:4000
-FRONTEND_URL=http://localhost:4000
-
-# Uploads
-UPLOAD_DIR=uploads
-
-# Enable email notifications to subscribers
-EMAIL_NOTIFICATIONS=true
-```
-
-> Security: don't commit real credentials. Use placeholders for shared repos.
 
 ## Quick start (Windows PowerShell)
 
@@ -113,6 +55,8 @@ mysql -u root -p < init.sql
 
 # 3) Run server (dev)
 npm run dev
+
+Run server [http://localhost:4000](http://localhost:4000)
 
 # 4) Run client (in separate window)
 cd client

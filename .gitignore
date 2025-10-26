@@ -1,7 +1,45 @@
+# Secrets
 .env
+.env.*               # .env.local, .env.test etc
+client/.env
+client/.env.local
+
+# Node modules
 node_modules/
+client/node_modules/
+
+# Build outputs
+client/build/
+dist/
+build/
+
+# Uploads / user files
+uploads/
+
+# Logs
+*.log
+server-out.log
+server-err.log
+npm-debug.log
+yarn-error.log
+
+# OS / editors
 .DS_Store
 Thumbs.db
-uploads/
 .vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+
+# Cache / temp
+.cache/
+tmp/
+coverage/
+
+# Lockfile policy (track locks unless you purposely ignore)
 package-lock.json
+client/package-lock.json
+
+# Optional: ignore client build static files if present
+client/build/static/

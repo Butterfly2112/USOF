@@ -65,7 +65,7 @@ async function init() {
   }
 
   app.listen(PORT, () => {
-    console.log(`Server started on port ${PORT}`);
+    console.log(`Server started on http://localhost:${PORT}`);
   });
 }
 
