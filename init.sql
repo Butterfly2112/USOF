@@ -84,6 +84,7 @@ CREATE TABLE comments (
   id INT AUTO_INCREMENT PRIMARY KEY,
   author_id INT NOT NULL,
   post_id INT NOT NULL,
+  parent_id INT NULL,
   content TEXT NOT NULL,
   publish_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -94,6 +95,7 @@ CREATE TABLE comments (
   status ENUM('active', 'inactive') DEFAULT 'active',
   FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+  FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE SET NULL,
   FOREIGN KEY (locked_by) REFERENCES users(id)
 );
 
@@ -187,53 +189,110 @@ BEGIN
   
   UPDATE users SET rating = rating + like_value WHERE id = target_user_id;
 END//
+
+-- When a post or comment is deleted, likes referencing it are typically
+-- removed by FK ON DELETE CASCADE. However, at the time the likes rows
+-- are deleted the parent row may already be gone, which prevents the
+-- `update_user_rating_after_like_delete` trigger from finding the
+-- original author and adjusting their rating. To handle this case we
+-- adjust the rating before the parent (post/comment) is deleted by
+-- summing existing likes and applying the inverse effect on the
+-- author's rating.
+
+CREATE TRIGGER adjust_user_rating_before_post_delete
+BEFORE DELETE ON posts
+FOR EACH ROW
+BEGIN
+  DECLARE like_sum INT DEFAULT 0;
+  SELECT COALESCE(SUM(CASE WHEN type = 'like' THEN 1 WHEN type = 'dislike' THEN -1 ELSE 0 END), 0) INTO like_sum
+    FROM likes WHERE post_id = OLD.id;
+  -- remove the effect of all likes/dislikes for this post from author's rating
+  UPDATE users SET rating = rating - like_sum WHERE id = OLD.author_id;
+END//
+
+CREATE TRIGGER adjust_user_rating_before_comment_delete
+BEFORE DELETE ON comments
+FOR EACH ROW
+BEGIN
+  DECLARE like_sum INT DEFAULT 0;
+  SELECT COALESCE(SUM(CASE WHEN type = 'like' THEN 1 WHEN type = 'dislike' THEN -1 ELSE 0 END), 0) INTO like_sum
+    FROM likes WHERE comment_id = OLD.id;
+  -- remove the effect of all likes/dislikes for this comment from author's rating
+  UPDATE users SET rating = rating - like_sum WHERE id = OLD.author_id;
+END//
 DELIMITER ;
 
 -- Sample data with proper password hashing (password is "password" for both users)
 INSERT INTO users (login, password, fullName, email, role, email_verified) VALUES
   ('admin', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrator', 'admin@example.com', 'admin', TRUE),
-  ('user1', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'John Doe', 'user1@example.com', 'user', TRUE),
-  ('user2', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Jane Smith', 'user2@example.com', 'user', TRUE),
-  ('user3', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Bob Wilson', 'user3@example.com', 'user', TRUE),
-  ('user4', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Alice Brown', 'user4@example.com', 'user', TRUE);
+  ('donna', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Donna Trenton', 'donna@example.com', 'user', TRUE),
+  ('sam',   '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Samantha', 'sam@example.com', 'user', TRUE),
+  ('tommy', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Tommy Beresford', 'tommy@example.com', 'user', TRUE),
+  ('holly', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Holly Sykes', 'holly@example.com', 'user', TRUE);
 
+-- Seed categories for a book discussion forum
 INSERT INTO categories (title, description) VALUES
-  ('General', 'General discussion topics and questions'),
-  ('Technology', 'Technology, programming and IT related discussions'),
-  ('Science', 'Scientific topics and research discussions'),
-  ('Web Development', 'Frontend and backend web development topics'),
-  ('Mobile Development', 'iOS, Android and cross-platform mobile development');
+  ('Fiction', 'Discussions about fiction books: novels, short stories and literary fiction'),
+  ('Non-Fiction', 'Biographies, history, essays, popular science and other non-fiction works'),
+  ('Fantasy', 'Fantasy novels, worldbuilding, series and authors'),
+  ('Mystery & Thriller', 'Mystery, crime, detective fiction and thrillers'),
+  ('Science Fiction', 'Sci‑fi novels, speculative fiction and related topics'),
+  ('Classics', 'Classic literature and historical masterpieces');
 
+-- Seed sample posts tailored to book discussions
 INSERT INTO posts (author_id, title, content, status) VALUES
-  (1, 'Welcome to USOF Platform', 'This is the first post on our question-answer platform. Feel free to ask questions and share knowledge!', 'active'),
-  (2, 'How to get started with programming?', 'I am new to programming and would like to know the best way to start learning. Any recommendations?', 'active'),
-  (3, 'Best practices for API design', 'What are the key principles to follow when designing RESTful APIs?', 'active'),
-  (4, 'React vs Vue.js comparison', 'Can someone explain the main differences between React and Vue.js frameworks?', 'active'),
-  (5, 'Database optimization tips', 'Looking for advice on optimizing MySQL database performance for large applications.', 'active'),
-  (1, 'Inactive post example', 'This post has been set to inactive status for demonstration purposes.', 'inactive');
+  (1, 'Welcome to USOF Books', 'Welcome to USOF Books - a friendly place to discuss novels, share reviews and recommend reading lists. Introduce yourself and tell us what you are reading!', 'active'),
+  (2, 'Reading group: "1984" by George Orwell', 'I would like to start a thread to discuss "1984" chapter by chapter. Who wants to join?', 'active'),
+  (3, 'Best contemporary novels (recommendations)', 'Share your top 5 contemporary novels from the last 20 years - looking for new reads.', 'active'),
+  (4, 'Fantasy worldbuilding tips', 'What techniques help authors create believable fantasy worlds? Share examples and favorite authors.', 'active'),
+  (5, 'Non-fiction recommendations: history & biography', 'Looking for approachable biographies or history books - any favorites?', 'active'),
+  (1, 'Inactive example: site maintenance', 'This sample post is marked inactive and used to demonstrate post status.', 'inactive');
+
+-- Additional seeded discussion posts requested by the site owner
+INSERT INTO posts (author_id, title, content, status) VALUES
+  (2, '1984 deep-dive: Winston, Julia and O''Brien - motives and choices',
+   'Let''s discuss Winston Smith and Julia: are their rebellious choices purely personal survival or small acts of resistance against Big Brother? How do you read O''Brien''s role — mentor, torturer, or something else? I''ll start: Winston''s diary and his relationship with truth make him tragic to me. Share favourite passages or lines that show what you think Orwell meant.',
+   'active'),
+  (3, 'Cujo - terror, interpretation and sympathy for the monster',
+   'Stephen King''s Cujo is terrifying on the surface, but who do we sympathize with - Donna Trenton, her son Tad, or even the dog and its owner Joe Camber? How does King make the ordinary suburban setting feel so claustrophobic? Recommended discussion: compare with other King isolated-horror pieces like "Misery" or "The Mist".',
+   'active'),
+  (4, 'Finding something similar - help me pick a novel',
+   'I just finished a book and want something similar - it was bleak, dystopian and emotionally heavy (think Orwell / Atwood). Suggestions I''ve heard: "Brave New World" by Aldous Huxley, "Fahrenheit 451" by Ray Bradbury, or "The Handmaid''s Tale" by Margaret Atwood. What would you recommend given those reference points? Mention why you think a recommendation matches (tone, pacing, themes).',
+   'active'),
+  (5, 'Discuss a character''s choices - moral ambiguity and sympathy',
+   'Pick any character (from any book) and let''s debate whether their choices were justified. For example, in many thrillers protagonists cross legal/ethical lines under pressure - does context excuse them? Try to point to concrete scenes when arguing for or against a character.',
+   'active'),
+  (2, 'Tommy & Tuppence (Agatha Christie) - charming detectives or just lucky?',
+   'Agatha Christie''s early duo from "The Secret Adversary" are playful and occasionally foolish. Do Tommy and Tuppence succeed because of detective skill, sheer luck, or their relationship dynamic? Which book with the pair is your favourite and why?',
+   'active'),
+  (3, 'Frederik Backman - reflections on "Anxious People"',
+   'Backman writes with warmth and blunt honesty about flawed people. "Anxious People" gathers a strange group of characters into one hostage situation and unfolds their backstories — what scene made you want to stand up and applaud or cry? How does Backman''s empathy shape the novel''s comedic and tragic beats?',
+   'active'),
+  (4, 'Mona Awad - "Bunny" blew my mind',
+   'Has anyone read Mona Awad''s "Bunny"? I went in expecting surreal campus satire and came out bewildered - the way Sam (Samantha) experiences the "Bunnies" and their rituals was at once funny and horrific. What interpretations do you have for the ending? Which passages stuck with you?',
+   'active');
 
 INSERT INTO post_categories (post_id, category_id) VALUES
-  (1, 1),
-  (2, 2),
-  (3, 2),
-  (3, 4),
-  (4, 4),
-  (5, 2),
+  (1, 1), -- Welcome -> Fiction (general)
+  (2, 5), -- 1984 discussion -> Science Fiction
+  (3, 1), -- contemporary novels -> Fiction
+  (4, 3), -- worldbuilding -> Fantasy
+  (5, 2), -- non-fiction recommendations -> Non-Fiction
   (6, 1);
 
 INSERT INTO comments (author_id, post_id, content) VALUES
-  (2, 1, 'Great platform! Looking forward to participating.'),
-  (1, 2, 'Welcome to the community! I recommend starting with Python or JavaScript.'),
-  (3, 2, 'I agree with Python recommendation. It has great learning resources.'),
-  (4, 3, 'RESTful design should follow standard HTTP methods and status codes.'),
-  (5, 4, 'Both frameworks are excellent. Choice depends on project requirements.'),
-  (2, 5, 'Consider indexing frequently queried columns and optimizing complex queries.');
+  (2, 1, 'Hello everyone - I''m excited to be here. Currently reading a historical novel.'),
+  (1, 2, 'I''m in for the "1984" reading group - week 1 discussion starts Monday.'),
+  (3, 3, 'I recommend "The Overstory" and "A Little Life" if you like contemporary literary fiction.'),
+  (4, 4, 'I like to start with clear rules for magic systems to keep the world consistent.'),
+  (5, 5, 'Try Walter Isaacson or Simon Winchester for accessible history/biography.'),
+  (2, 6, 'Thanks for the heads up about maintenance.');
 
 INSERT INTO likes (author_id, post_id, type) VALUES
   (2, 1, 'like'),
   (1, 2, 'like'),
-  (3, 2, 'like'),
-  (4, 3, 'like'),
-  (5, 4, 'like'),
-  (1, 5, 'like'),
-  (2, 3, 'dislike');
+  (3, 3, 'like'),
+  (4, 4, 'like'),
+  (5, 5, 'like'),
+  (1, 3, 'like'),
+  (2, 4, 'dislike');

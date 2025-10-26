@@ -25,7 +25,10 @@ async function search(req, res, next) {
 
 async function searchUsers(req, res, next) {
   try {
-    const { q, page = 1, pageSize = 10 } = req.query;
+    // Coerce pagination params to integers to avoid quoted LIMIT/OFFSET in SQL
+    const q = req.query.q;
+    const page = Math.max(1, parseInt(req.query.page || 1, 10));
+    const pageSize = Math.max(1, parseInt(req.query.pageSize || 10, 10));
     const offset = (page - 1) * pageSize;
     const searchTerm = `%${q.trim()}%`;
     
@@ -51,7 +54,11 @@ async function searchUsers(req, res, next) {
 
 async function searchPosts(req, res, next) {
   try {
-    const { q, page = 1, pageSize = 10, sort = 'relevance' } = req.query;
+    // Coerce pagination params to integers to avoid quoted LIMIT/OFFSET in SQL
+    const q = req.query.q;
+    const sort = req.query.sort || 'relevance';
+    const page = Math.max(1, parseInt(req.query.page || 1, 10));
+    const pageSize = Math.max(1, parseInt(req.query.pageSize || 10, 10));
     const offset = (page - 1) * pageSize;
     
     // Validate search query length
@@ -84,6 +91,7 @@ async function searchPosts(req, res, next) {
     `;
     
     // Pass search term 4 times: 2 for relevance calculation, 2 for WHERE clause
+    // Ensure numeric values are passed as numbers (mysql2 will not quote numbers)
     const [results] = await pool.query(query, [
       searchTerm, searchTerm, searchTerm, searchTerm, pageSize, offset
     ]);

@@ -6,6 +6,9 @@ const fc = require('../controllers/favoriteController');
 // Get user's favorite posts
 router.get('/', auth, fc.getFavorites);
 
+// Get posts liked by the user (derived favorites)
+router.get('/likes', auth, fc.getFavoritesFromLikes);
+
 // Add post to favorites
 router.post('/:postId', auth, fc.addToFavorites);
 

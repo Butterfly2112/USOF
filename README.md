@@ -1,224 +1,166 @@
-# USOF API
+# USOF — Unified Forum (API + Client)
 
-A comprehensive forum API built with Node.js, Express, and MySQL. RESTful API for a modern question-answer platform similar to Stack Overflow.
+---
 
-## 📸 Testing with Postman
-<img width="761" height="462" alt="image" src="https://github.com/user-attachments/assets/92024de5-ae77-4461-88a0-d0618822d76e" />
+## Quick summary
+- Backend: Node.js + Express + MySQL (REST API)
+- Frontend: React (Create React App) client in `client/`
 
-<img width="763" height="527" alt="image" src="https://github.com/user-attachments/assets/38c40c7e-e7ed-42a8-8214-240480aaf1d5" />
-
-### Postman Setup Guide
-
-#### 1. Install Postman
-- Download from [postman.com](https://www.postman.com/downloads/)
-- Create free account (optional but recommended)
-
-#### 2. Create Collection
-- New → Collection → Name: "USOF API"
-
-#### 3. Setup Environment
-- Environments → New Environment → Name: "USOF Local"
-- Variables:
-  - `baseUrl` = `http://localhost:4000`
-  - `token` = (leave empty, will be filled after login)
-
-#### 4. Essential Test Requests
-
-**Health Check**
-```
-GET {{baseUrl}}/health
-```
-
-**Admin Login** (Save token from response!)
-```
-POST {{baseUrl}}/api/auth/login
-Headers: Content-Type: application/json
-Body: 
-{
-  "loginOrEmail": "admin",
-  "password": "password"
-}
-```
-
-**Get All Posts**
-```
-GET {{baseUrl}}/api/posts
-```
-
-**Create Post** (Requires token)
-```
-POST {{baseUrl}}/api/posts
-Headers: 
-  Content-Type: application/json
-  Authorization: Bearer {{token}}
-Body:
-{
-  "title": "Test Post",
-  "content": "Test content",
-  "categories": [1, 2]
-}
-```
-
-**Add Comment** (Requires token)
-```
-POST {{baseUrl}}/api/posts/1/comments
-Headers: 
-  Content-Type: application/json
-  Authorization: Bearer {{token}}
-Body:
-{
-  "content": "This is a test comment"
-}
-```
-
-## 🚀 Key Features
-
-- **Authentication & Authorization** - JWT-based auth with admin/user roles
-- **Posts & Comments** - Full CRUD operations with likes/dislikes
-- **Categories & Search** - Organize and find content easily
-- **Advanced Features** - Favorites, subscriptions, notifications
-- **Admin Panel** - Content moderation and user management
-- **Security** - Password hashing, input validation, SQL injection protection
-
-## 🛠 Installation & Setup
-
-### Prerequisites
-- Node.js (v16+)
+## Prerequisites
+- Node.js (v16+ recommended)
+- npm (v7+ recommended)
 - MySQL (v8+)
-- npm (v7+)
 
-### Quick Start
-```bash
-# 1. Clone repository
-git clone https://github.com/Butterfly2112/USOF.git
-cd USOF
+## Environment (.env)
+Create a `.env` file in the repository root (copy `.env.example` if present). Minimal required vars:
 
-# 2. Install dependencies  
-npm install
-
-# 3. Setup environment
-cp  .env
-# Edit .env with your database credentials
-
-# 4. Initialize database
-mysql -u root -p < init.sql
-
-# 5. Start server
-node server.js
 ```
-
-Server runs on `http://localhost:4000`
-
-### Environment Variables (.env)
-```env
 PORT=4000
 DB_HOST=localhost
+DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=your_password
 DB_NAME=usof_db
-JWT_SECRET=your_secret_key
+JWT_SECRET=your_jwt_secret
+```
+
+Optional for email/password reset:
+
+```
+EMAIL_HOST=smtp.example.com
+EMAIL_PORT=587
+EMAIL_USER=you@example.com
+EMAIL_PASS=app-password
+BASE_URL=http://localhost:4000
+
+Optional: enable sending email notifications to subscribers
+```
+EMAIL_NOTIFICATIONS=true    # set to 'true' to send email notifications when posts are updated or commented
+SEND_NOTIFICATION_EMAILS=true # alternative var name supported
+```
+```
+
+Client-specific environment (in `client/.env` or when running client):
+
+```
+REACT_APP_API_BASE=http://localhost:4000/api
+REACT_APP_UPLOAD_DIR=/uploads
+```
+
+Note: If the client is run in dev mode, CRA proxies requests to the API (see `client/package.json` proxy setting).
+
+---
+
+## Quick start (Windows PowerShell)
+
+Run these commands from the repository root. The examples below assume PowerShell on Windows and repository path `C:\Users\user\Desktop\USOF`.
+
+1) Install server dependencies
+
+```powershell
+cd C:\Users\user\Desktop\USOF
+npm install
+```
+
+2) Initialize the database
+```
+cd C:\Users\user\Desktop\USOF\client
+*** Begin simplified README
+
+# USOF — Unified Book-Discussion Forum (API + Client)
+
+Compact, practical README for local development and testing.
+
+## Environment (.env)
+Create `.env` in the project root and set these values (example):
+
+```env
+PORT=4000
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_NAME=usof_db
+JWT_SECRET=your_jwt_secret_here
+
+# SMTP (password reset + optional notifications)
 EMAIL_HOST=smtp.gmail.com
 EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-app-password
+EMAIL_PASS=your-smtp-password   # use Gmail App Password if using Gmail
+EMAIL_PORT=587
+
+# App URLs
+BASE_URL=http://localhost:4000
+FRONTEND_URL=http://localhost:4000
+
+# Uploads
+UPLOAD_DIR=uploads
+
+# Enable email notifications to subscribers
+EMAIL_NOTIFICATIONS=true
 ```
 
-## 🏗️ Architecture
+> Security: don't commit real credentials. Use placeholders for shared repos.
 
-**MVC Pattern**: Models (data) → Controllers (logic) → Routes (endpoints)
+## Quick start (Windows PowerShell)
 
-**Tech Stack**: Node.js + Express + MySQL + JWT
+```powershell
+# 1) Install server deps
+cd C:\Users\user\Desktop\USOF
+npm install
 
-**Security**: Bcrypt passwords, SQL injection protection, input validation
+# 2) Initialize DB (MySQL must be running)
+mysql -u root -p < init.sql
 
-## 📋 Development Progress (CBL Stages)
+# 3) Run server (dev)
+npm run dev
 
-✅ **Stage 1**: Database design & setup  
-✅ **Stage 2**: Authentication system  
-✅ **Stage 3**: Core API endpoints  
-✅ **Stage 4**: Advanced features (favorites, notifications)  
-✅ **Stage 5**: Security & performance optimization
+# 4) Run client (in separate window)
+cd client
+npm install
+npm start
 
-## 🔗 API Endpoints
-
-### Authentication
-```http
-POST /api/auth/register    # User registration
-POST /api/auth/login       # User login
-POST /api/auth/logout      # User logout
-POST /api/auth/password-reset    # Request password reset
+# 5) Production: build client then start prod server (from repo root)
+cd client
+npm run build
+cd ..
+npm run start:prod
 ```
 
-### Users
-```http
-GET    /api/users          # Get all users
-POST   /api/users          # Create user (admin only)
-GET    /api/users/:id      # Get user profile
-PATCH  /api/users/:id      # Update user
-DELETE /api/users/:id      # Delete user
-PATCH  /api/users/avatar   # Update avatar
-```
+## Important notes
+- For Gmail, create an App Password (with 2FA) and set it as `EMAIL_PASS`.
+- To test emails safely use Mailtrap/Ethereal SMTP credentials instead of Gmail.
+- After changing `.env`, restart the server so environment variables load.
 
-### Posts
-```http
-GET    /api/posts          # List posts with filtering
-POST   /api/posts          # Create new post
-GET    /api/posts/:id      # Get specific post
-PATCH  /api/posts/:id      # Update post
-DELETE /api/posts/:id      # Delete post
-```
+## Short API reference
 
-### Comments
-```http
-GET    /api/posts/:id/comments   # Get post comments
-POST   /api/posts/:id/comments   # Add comment
-GET    /api/comments/:id         # Get comment
-PATCH  /api/comments/:id         # Update comment
-DELETE /api/comments/:id         # Delete comment
-```
+- Auth: `POST /api/auth/login`, `POST /api/auth/register`, `POST /api/auth/password-reset`
+- Posts: `GET /api/posts`, `GET /api/posts/:id`, `POST /api/posts`, `PATCH /api/posts/:id`, `DELETE /api/posts/:id`
+- Comments: `GET /api/posts/:id/comments`, `POST /api/posts/:id/comments`
+- Subscriptions: `POST /api/subscriptions/:postId`, `DELETE /api/subscriptions/:postId`, `GET /api/subscriptions/notifications`
 
-### Categories
-```http
-GET    /api/categories           # List categories
-POST   /api/categories           # Create category (admin)
-GET    /api/categories/:id       # Get category
-PATCH  /api/categories/:id       # Update category (admin)
-DELETE /api/categories/:id       # Delete category (admin)
-```
+See `routes/` for a complete list and parameters.
 
-### Advanced Features
-```http
-# Favorites
-GET    /api/favorites            # Get user's favorites
-POST   /api/favorites/:postId    # Add to favorites
-DELETE /api/favorites/:postId    # Remove from favorites
+## Notifications behavior
 
-# Subscriptions & Notifications
-POST   /api/subscriptions/:postId    # Subscribe to post
-GET    /api/subscriptions/notifications # Get notifications
+- When a subscribed post receives a new comment or is updated the server creates a `notifications` DB record for subscribers.
+- If `EMAIL_NOTIFICATIONS=true`, the server will also attempt to send emails to subscribers (check server logs for `Notification email sent to ...`).
 
-# Search
-GET    /api/search/posts?q=query     # Search posts
-```
+## Troubleshooting
 
-## 🎮 Test Accounts
+- Server start errors: check `.env`, ensure MySQL is running, inspect server logs.
+- Email not sent: confirm `EMAIL_NOTIFICATIONS=true` and valid SMTP credentials; check server logs for nodemailer errors.
+- DB issues: run `mysql -u root -p < init.sql` to create schema and seeds.
 
-### Admin Account
-```
-Login: admin
-Password: password
-Email: admin@example.com
-```
+## Test accounts (seeded)
 
-### User Accounts
-```
-Login: user1, user2, user3, user4
-Password: password
-```
+- Admin: `admin` / `password`
+- Users: `user1`, `user2`, etc. (default password `password`)
 
-## 🚨 Troubleshooting
+---
 
-**Database Connection Error**: Ensure MySQL is running and credentials are correct in `.env`
+If you want, I can:
+- configure Mailtrap in `.env` for safe email testing, or
+- add `post_deleted` notifications so subscribers are notified when a post is removed, or
+- implement optimistic subscribe UI on the client.
 
-**Port in Use**: Change PORT in `.env` or kill process using port 4000
-
-**Schema Not Found**: Run `mysql -u root -p < init.sql`
+*** End simplified README

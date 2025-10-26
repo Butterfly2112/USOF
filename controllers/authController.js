@@ -20,7 +20,11 @@ async function register(req, res, next) {
     if (exists) return res.status(400).json({ success: false, error: 'Login or email already used' });
 
     const user = await userModel.createUser({ login, password, fullName, email });
-    res.json({ success: true, user });
+    // Fetch created user and issue JWT so the user is automatically logged in after registration
+    const created = await userModel.findById(user.id);
+    const token = jwt.sign({ id: created.id, role: created.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    // Return token and user shape compatible with login response
+    res.json({ success: true, token, user: { id: created.id, login: created.login, email: created.email, role: created.role } });
   } catch (err) {
     next(err);
   }
@@ -61,7 +65,22 @@ async function requestPasswordReset(req, res, next) {
       }
     });
 
-    const resetLink = `${process.env.BASE_URL}/api/auth/reset-password?token=${token}`;
+    // Build reset link. By default the app preferred the frontend URL so users land on the client UI.
+    // If you want emails to contain the backend/API link (for example http://localhost:4000/reset-password?token=...)
+    // set RESET_LINK_HOST=backend (or RESET_LINK_HOST=server) in .env. This keeps behavior configurable.
+    const preferBackend = (process.env.RESET_LINK_HOST === 'backend' || process.env.RESET_LINK_HOST === 'server' || process.env.RESET_LINK_PREFER === 'backend');
+
+    let resetLink;
+    if (preferBackend) {
+      // Use BASE_URL (or fallback to localhost:PORT) and generate a backend URL that will redirect to frontend
+      const backendHost = (process.env.BASE_URL && process.env.BASE_URL.trim()) ? process.env.BASE_URL : `http://localhost:${process.env.PORT || 4000}`;
+      resetLink = `${backendHost.replace(/\/$/, '')}/reset-password?token=${token}`;
+    } else {
+      // Prefer frontend URL so users land on the client UI directly
+      const frontend = process.env.FRONTEND_URL || process.env.BASE_URL || '';
+      resetLink = frontend ? `${frontend.replace(/\/$/, '')}/reset-password?token=${token}` : `${process.env.BASE_URL}/api/auth/reset-password?token=${token}`;
+    }
+
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: userRow.email,
@@ -90,6 +109,20 @@ async function resetPassword(req, res, next) {
     await pool.query(`DELETE FROM password_resets WHERE id = ?`, [record.id]);
 
     res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Redirect GET requests (from old email links) to the frontend reset page
+async function resetPasswordRedirect(req, res, next) {
+  try {
+    const token = req.query.token || req.body.token;
+    const frontend = process.env.FRONTEND_URL || process.env.BASE_URL || '';
+    if (!frontend) return res.status(400).send('Frontend URL not configured');
+    const target = `${frontend.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(token || '')}`;
+    // 302 redirect to client reset page
+    return res.redirect(target);
   } catch (err) {
     next(err);
   }
@@ -131,5 +164,6 @@ module.exports = {
   requestPasswordReset,
   resetPassword,
   confirmPasswordReset,
-  logout
+  logout,
+  resetPasswordRedirect
 };

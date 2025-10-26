@@ -4,6 +4,7 @@ const auth = require('../middleware/authMiddleware');
 const sc = require('../controllers/subscriptionController');
 
 // Subscribe to post updates
+router.get('/', auth, sc.listSubscriptions);
 router.post('/:postId', auth, sc.subscribeToPost);
 
 // Unsubscribe from post updates

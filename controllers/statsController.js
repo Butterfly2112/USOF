@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const statsStore = require('../utils/statsStore');
 
 async function getUserStats(req, res, next) {
   try {
@@ -42,6 +43,19 @@ async function getUserStats(req, res, next) {
   }
 }
 
+async function getOverview(req, res, next) {
+  try {
+    const stats = statsStore.getStats();
+    // Add some aggregated DB stats as well
+    const [[usersCount]] = await pool.query(`SELECT COUNT(*) as count FROM users`);
+    const [[postsCount]] = await pool.query(`SELECT COUNT(*) as count FROM posts`);
+    const [[commentsCount]] = await pool.query(`SELECT COUNT(*) as count FROM comments`);
+
+    res.json({ success: true, stats: { fileStats: stats, db: { users: usersCount.count, posts: postsCount.count, comments: commentsCount.count } } });
+  } catch (err) { next(err); }
+}
+
 module.exports = {
   getUserStats
+  , getOverview
 };

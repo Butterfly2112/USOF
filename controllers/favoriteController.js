@@ -60,14 +60,54 @@ async function getFavorites(req, res, next) {
     `;
     
     const [favorites] = await pool.query(query, [userId, pageSize, offset]);
-    res.json({ success: true, favorites });
+    // normalize fields for frontend: provide likes_count and rating (likes - dislikes)
+    const norm = favorites.map(f => ({
+      ...f,
+      likes_count: Number(f.likesCount || 0),
+      dislikes_count: Number(f.dislikesCount || 0),
+      rating: (Number(f.likesCount || 0) - Number(f.dislikesCount || 0))
+    }));
+    res.json({ success: true, favorites: norm });
   } catch (err) {
     next(err);
   }
 }
 
+  async function getFavoritesFromLikes(req, res, next) {
+    try {
+      const userId = req.user.id;
+      const { page = 1, pageSize = 10 } = req.query;
+      const offset = (page - 1) * pageSize;
+
+      const query = `
+        SELECT p.*, u.login as authorLogin, u.fullName as authorName,
+          (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id AND l.type = 'like') as likesCount,
+          (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id AND l.type = 'dislike') as dislikesCount,
+          l.publish_date as liked_at
+        FROM likes l
+        JOIN posts p ON l.post_id = p.id
+        JOIN users u ON p.author_id = u.id
+        WHERE l.author_id = ? AND l.type = 'like' AND p.status = 'active'
+        ORDER BY l.publish_date DESC
+        LIMIT ? OFFSET ?
+      `;
+
+      const [rows] = await pool.query(query, [userId, pageSize, offset]);
+      const norm = rows.map(f => ({
+        ...f,
+        likes_count: Number(f.likesCount || 0),
+        dislikes_count: Number(f.dislikesCount || 0),
+        rating: (Number(f.likesCount || 0) - Number(f.dislikesCount || 0))
+      }));
+      res.json({ success: true, favorites: norm });
+    } catch (err) {
+      next(err);
+    }
+  }
+
 module.exports = {
   addToFavorites,
   removeFromFavorites,
-  getFavorites
+  getFavorites,
+  getFavoritesFromLikes
 };

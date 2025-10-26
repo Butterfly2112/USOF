@@ -1,0 +1,351 @@
+:root{
+	/* Dark theme (slightly pink/purple undertone) */
+	--bg:#09030b; /* deep plum background */
+	--panel:#12041a; /* deep panel with purple tint */
+	--muted:#cfc0d9; /* softer muted text */
+	--accent:#5a2b8f; /* dark violet for primary buttons */
+	--accent-2:#c23b7a; /* rich dark pink as secondary accent */
+	--glass: rgba(194,59,122,0.03); /* faint pink-tinted glass */
+	--card-shadow: 0 6px 18px rgba(11,8,16,0.6);
+}
+*{box-sizing:border-box}
+body{font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Arial;margin:0;color:var(--muted);background:linear-gradient(180deg,#050215 0%,#09030b 100%);-webkit-font-smoothing:antialiased}
+
+/* Layout: keep footer at bottom and main take remaining space */
+.app-root{display:flex;flex-direction:column;min-height:100vh}
+main.container{flex:1;padding-top:92px}
+
+.site-header{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;background:linear-gradient(90deg, rgba(179,108,255,0.06), rgba(255,102,179,0.03));backdrop-filter: blur(6px);border-bottom:1px solid rgba(255,255,255,0.03)}
+.brand a{font-weight:800;color:var(--accent);text-decoration:none;font-size:22px;letter-spacing:0.6px}
+/* Main navigation/menu in header */
+.main-nav{display:flex;gap:12px;align-items:center;margin-left:16px}
+.main-nav.vertical{display:flex;flex-direction:column;align-items:flex-start}
+.main-nav .nav-link{color:var(--muted);text-decoration:none;padding:8px 10px;border-radius:8px;width:100%;display:inline-block}
+.main-nav .nav-link:hover{background:var(--glass);color:var(--accent)}
+.main-nav .nav-link.active{background:var(--accent);color:#fff}
+.search input{padding:10px;border:1px solid rgba(255,255,255,0.04);border-radius:12px;width:100%;background:transparent;color:var(--muted)}
+.user-area{display:flex;align-items:center;gap:14px}
+
+/* Sidebar layout */
+.site-sidebar{position:fixed;left:0;top:72px;bottom:0;width:160px;padding:12px 10px;background:linear-gradient(180deg,var(--panel), rgba(18,10,26,0.9));border-right:1px solid rgba(255,255,255,0.03);display:flex;flex-direction:column;justify-content:flex-start;z-index:40}
+.site-sidebar.compact{top:72px}
+.site-sidebar .main-nav{margin-top:8px}
+.sidebar-top{display:block}
+.sidebar-bottom{margin-top:12px}
+.container{padding:20px;margin:0 auto;margin-left:160px;width:calc(100% - 160px);max-width:none}
+
+/* Top header */
+.top-header{position:fixed;left:0;right:0;top:0;height:72px;display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:linear-gradient(90deg, rgba(179,108,255,0.04), rgba(255,102,179,0.02));backdrop-filter: blur(6px);z-index:45;border-bottom:1px solid rgba(255,255,255,0.02)}
+.top-header .brand a{font-weight:800;color:var(--accent);text-decoration:none;font-size:20px}
+.top-header .search{flex:1;margin:0 18px}
+.top-header .search input{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted)}
+.top-user{display:flex;align-items:center;gap:12px}
+.avatar{width:42px;height:42px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,0.04)}
+.role-badge{background:rgba(255,255,255,0.03);color:var(--muted);padding:4px 8px;border-radius:8px;font-size:12px;text-transform:capitalize;border:1px solid rgba(255,255,255,0.02)}
+
+.container{padding:28px;max-width:1200px;margin:0 auto}
+.layout-row{display:flex;gap:20px}
+
+.posts-grid{display:grid;grid-template-columns:1fr;gap:18px;align-items:start}
+
+/* On narrower screens allow multiple columns so cards fit side-by-side */
+@media (max-width:1200px){
+	.posts-grid{grid-template-columns:repeat(auto-fill,minmax(320px,1fr));}
+}
+.post-card{background:linear-gradient(180deg,var(--panel), rgba(18,10,26,0.7));padding:18px;border-radius:14px;box-shadow:var(--card-shadow);border:1px solid rgba(255,255,255,0.03);color:var(--muted)}
+.post-card h3{margin:0 0 10px;color:var(--accent);font-size:18px}
+.post-card .meta{font-size:12px;color:rgba(255,255,255,0.45);margin-bottom:10px}
+.preview{color:rgba(255,255,255,0.6);line-height:1.45}
+.post-footer{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.post-footer .footer-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.post-footer .footer-bottom{display:flex;align-items:center}
+.post-footer button{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);padding:6px 8px;border-radius:8px;cursor:pointer;font-size:14px}
+.post-footer .fav{padding:6px 9px}
+.reaction-count{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:14px}
+.post-footer .btn{font-size:15px;padding:6px 8px}
+.post-footer .btn[title]{width:auto;height:auto;display:inline-flex;align-items:center;justify-content:center}
+.reaction-btn{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted);cursor:pointer}
+.reaction-btn:hover{background:rgba(255,255,255,0.02)}
+.reaction-btn .count{font-size:14px}
+.reaction-btn img{width:20px;height:20px;object-fit:contain;display:inline-block}
+.reaction-inline{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted);cursor:pointer}
+.reaction-inline .count{margin-left:6px}
+.reaction-inline img.dislike-icon{width:20px;height:20px;object-fit:contain;display:inline-block}
+.reaction-inline img.like-icon{width:20px;height:20px;object-fit:contain;display:inline-block}
+.fav-inline{padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted);cursor:pointer}
+.share-btn{padding:6px 12px;border-radius:8px}
+
+/* Share menu dropdown used by PostCard and PostDetail */
+.share-wrapper{position:relative;display:inline-block}
+.share-menu{position:absolute;left:100%;top:0;min-width:180px;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);background:var(--panel);box-shadow:var(--card-shadow);z-index:120;transform:translateX(8px)}
+.share-menu button{display:block;width:100%;text-align:left;padding:8px;border-radius:6px;background:transparent;border:none;color:var(--muted);cursor:pointer}
+.share-menu button:hover{background:rgba(179,108,255,0.04)}
+.status-inline{color:var(--muted);font-size:14px;padding:4px 6px;border-radius:6px;background:rgba(255,255,255,0.01)}
+.rating-inline{color:var(--muted);font-size:14px}
+.share-placeholder{color:var(--muted)}
+.post-footer .fav{color:var(--accent-2)}
+
+.post-card .thumb{height:160px;border-radius:10px;overflow:hidden;margin-bottom:12px}
+.post-card .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.badges{display:flex;gap:8px;margin-bottom:8px}
+.badge{background:rgba(255,255,255,0.03);color:var(--accent);padding:6px 8px;border-radius:999px;font-size:12px;border:1px solid rgba(255,255,255,0.02)}
+
+.hero{display:flex;flex-direction:column;gap:6px;padding:28px;margin-bottom:20px}
+.hero h1{margin:0;color:var(--accent);font-size:28px}
+.hero .lead{color:rgba(255,255,255,0.7)}
+
+/* subtle hover */
+.post-card{transition:transform .18s ease, box-shadow .18s ease}
+.post-card:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(11,8,16,0.7)}
+
+/* Footer */
+.site-footer{border-top:1px solid rgba(255,255,255,0.03);padding:10px 0;margin-top:20px}
+.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:nowrap}
+.brand-small{font-weight:700;color:var(--accent)}
+.links a{color:var(--muted);margin-right:12px}
+
+/* Center footer links between brand and copyright */
+.footer-inner .links{flex:1 1 auto;display:flex;justify-content:center;gap:16px;min-width:0}
+.footer-inner .brand-small{flex:0 0 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.footer-inner .copyright{flex:0 0 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* On small screens stack footer content to avoid cramped rows */
+@media (max-width:720px){
+	.footer-inner{flex-direction:column;gap:8px;align-items:center}
+	.footer-inner .links{order:2}
+	.footer-inner .copyright{order:3}
+	.footer-inner .brand-small{order:1}
+}
+
+/* Make footer content sit closer to page edges without changing global .container padding */
+.site-footer .container{padding-left:12px;padding-right:12px}
+.footer-inner .copyright{margin-left:auto;margin-right:0;padding-right:0}
+
+.copyright{color:rgba(255,255,255,0.45)}
+
+/* Solid-color buttons (no gradient). Uses --accent for primary and all buttons as requested. */
+.btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:10px;border:none;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+
+/* Button variants */
+.btn.primary{box-shadow:0 6px 18px rgba(90,43,143,0.12);} /* subtle shadow for primary */
+.btn.secondary{background:var(--accent-2);color:#fff;border:1px solid transparent}
+.btn.ghost{background:var(--accent);border:1px solid transparent;color:#fff;padding:6px 10px}
+.btn.ghost:hover{filter:brightness(0.95)}
+.btn:hover{filter:brightness(0.95);transform:none}
+
+.theme-toggle{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:6px 8px;border-radius:8px}
+
+/* LIGHT THEME */
+[data-theme='light']{
+	/* Light theme: gentle pink background and slightly pink panels */
+	--bg: #fff0f6; /* very light pink background */
+	--panel: #fff6fb; /* slightly pink panel for sidebar/cards/footer */
+	--muted: #333;
+	--accent: #b03a63; /* dark pink for primary buttons */
+	--accent-2: #6f2b86; /* dark purple secondary */
+	--glass: rgba(176,58,99,0.04); /* faint pink glass effect */
+	--card-shadow: 0 8px 24px rgba(176,58,99,0.06);
+}
+
+[data-theme='light'] body{background: linear-gradient(180deg,#fff,#fff)}
+[data-theme='light'] .site-header{background:linear-gradient(90deg, rgba(255,102,179,0.06), rgba(179,108,255,0.03));border-bottom:1px solid rgba(0,0,0,0.04)}
+[data-theme='light'] .post-card{background:#fff;color:var(--muted);border:1px solid rgba(0,0,0,0.06);box-shadow:var(--card-shadow)}
+[data-theme='light'] .search input{background:#fff;color:var(--muted);border:1px solid rgba(0,0,0,0.06)}
+[data-theme='light'] .post-card h3{color:var(--accent)}
+
+/* Additional light-theme overrides to avoid low-contrast white-on-white elements */
+[data-theme='light'] .site-sidebar,
+[data-theme='light'] .card,
+[data-theme='light'] .user-card,
+[data-theme='light'] .site-footer,
+[data-theme='light'] .top-header{background:var(--panel);border-color:rgba(0,0,0,0.06);box-shadow:none}
+
+[data-theme='light'] .post-card .meta,
+[data-theme='light'] .preview,
+[data-theme='light'] .comment-meta,
+[data-theme='light'] .comment-reply-to,
+[data-theme='light'] .badge,
+[data-theme='light'] .share-placeholder,
+[data-theme='light'] .user-card .meta,
+[data-theme='light'] .copyright,
+[data-theme='light'] .filters-bar label,
+[data-theme='light'] .role-badge{color:rgba(0,0,0,0.65)}
+
+[data-theme='light'] .badge{background:rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.04);color:var(--accent)}
+
+[data-theme='light'] .post-footer button,
+[data-theme='light'] .post-footer .btn,
+[data-theme='light'] .reaction-btn,
+[data-theme='light'] .reaction-inline,
+[data-theme='light'] .fav-inline,
+[data-theme='light'] .subscribe-inline,
+[data-theme='light'] .btn.ghost,
+[data-theme='light'] .filters-bar select,
+[data-theme='light'] .form input,
+[data-theme='light'] .form textarea,
+[data-theme='light'] .form select,
+[data-theme='light'] .search input{border-color:rgba(0,0,0,0.06);background:transparent;color:var(--muted)}
+
+[data-theme='light'] .post-card .thumb{background:#fafafa}
+
+/* Remove heavy dark overlay for light theme lightbox */
+[data-theme='light'] .lightbox-overlay{background:rgba(0,0,0,0.6)}
+
+[data-theme='light'] .post-card:hover{transform:none;box-shadow:0 6px 18px rgba(16,12,23,0.06)}
+
+.profile{display:flex;gap:12px;align-items:center}
+.profile-avatar{width:96px;height:96px;border-radius:12px;object-fit:cover}
+
+.card{background:var(--panel);padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);box-shadow:var(--card-shadow)}
+
+/* Unified form styles for post creation/edit and other forms */
+.page .form, .form { display:block; background:transparent; }
+.form label{display:block;color:var(--muted);font-weight:600;margin:10px 0 6px}
+.form input[type="text"], .form input[type="email"], .form input[type="password"], .form input[type="file"], .form input, .form select, .form textarea{
+	width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted);outline:none
+}
+.form input:focus, .form textarea:focus, .form select:focus{box-shadow:0 0 0 4px rgba(179,108,255,0.06);border-color:var(--accent)}
+.form .ql-container{border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted)}
+.form .btn{margin-top:14px}
+
+/* Filters bar used on listing pages */
+.filters-bar{display:flex;gap:12px;align-items:center}
+.filters-bar label{color:var(--muted);font-weight:600}
+.category-filter select{min-width:160px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted)}
+.filters-bar select{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted)}
+.form select, select, .filters-bar select {
+	/* Use theme-aware panel/background and text color so the dropdown and its menu match the theme */
+	background: var(--panel);
+	color: var(--muted);
+	border: 1px solid rgba(255,255,255,0.04);
+	padding: 8px;
+	border-radius: 8px;
+}
+.form select option, select option, .filters-bar select option {
+	/* Style option menu entries where browser allows it */
+	background: var(--panel);
+	color: var(--muted);
+}
+
+/* Small normalization for Windows/IE arrow */
+select::-ms-expand { color: inherit; }
+.filters-bar .btn{height:38px;padding:8px 12px}
+
+/* Pagination styling */
+.pagination{display:flex;gap:8px;justify-content:center;margin:20px 0}
+.pagination button{padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted);cursor:pointer}
+.pagination button[disabled]{background:var(--accent);color:#fff;border-color:transparent;cursor:default}
+
+/* Small helper to place main page header and filters in one line */
+.page-header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+
+/* Users list */
+.users-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.user-card{background:linear-gradient(180deg,var(--panel), rgba(18,10,26,0.7));padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);box-shadow:var(--card-shadow)}
+.user-card .meta{font-size:12px;color:rgba(255,255,255,0.45)}
+.user-card img{width:56px;height:56px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,0.04)}
+
+/* Header auth area */
+.auth-links{display:flex;align-items:center;gap:10px}
+.auth-links a.user-link{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--muted);padding:6px;border-radius:8px}
+.auth-links a.user-link:hover{background:var(--glass)}
+.auth-guest a{color:var(--muted);text-decoration:none;padding:6px 8px;border-radius:8px}
+.auth-guest a:hover{background:var(--glass)}
+.avatar-small{width:34px;height:34px;border-radius:8px;object-fit:cover;border:1px solid rgba(255,255,255,0.04)}
+
+
+
+.comment{border-top:1px solid rgba(255,255,255,0.03);padding:12px 0}
+.comment-meta{font-size:12px;color:rgba(255,255,255,0.45)}
+.comment-content{margin:6px 0;color:var(--muted)}
+.comment-reply-to{font-size:13px;color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.02);padding:6px 8px;border-radius:8px;margin-bottom:6px}
+.reply-form textarea{width:100%;min-height:100px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);padding:10px;border-radius:8px}
+
+/* responsive tweaks */
+@media (max-width:920px){
+	/* collapse sidebar and adapt container for tablets/phones */
+	.container{margin-left:0;padding:16px;width:100%;}
+	.site-sidebar{display:none}
+	.top-header .search input{width:140px}
+	.posts-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+	.post-card{border-radius:10px}
+}
+
+@media (max-width:720px){
+	/* mobile-specific adjustments */
+	.search input{width:120px}
+	.posts-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+	.top-header{height:auto;padding:12px}
+	.post-card{padding:12px}
+	.post-card h3{font-size:16px}
+	.post-card .thumb{height:120px}
+	.post-footer .footer-top{gap:8px}
+	.filters-bar{flex-wrap:wrap;gap:8px}
+	.filters-bar label{width:100%}
+	.filters-bar select, .filters-bar input, .filters-bar .form-input{flex:1 1 100%;min-width:0}
+	.share-menu{left:8px;right:8px;top:auto;bottom:48px;transform:none}
+	.profile{flex-direction:column;align-items:flex-start;gap:10px}
+	.profile-avatar{width:80px;height:80px}
+	.users-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+	.comment-form textarea{min-height:120px}
+}
+
+/* Post detail image gallery */
+.post-images{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 16px}
+.post-images > div{width:220px;height:140px;overflow:hidden;border-radius:10px;flex:0 0 auto}
+.post-images img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* Post detail: actions row styling */
+.post-detail .categories{color:var(--muted);font-size:13px;margin:10px 0 8px}
+.action-row{display:flex;justify-content:space-between;align-items:center;margin:10px 0 18px;gap:12px}
+.action-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.action-right{display:flex;align-items:center;gap:8px}
+.reaction-inline{background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:10px;padding:8px 10px;border:1px solid rgba(255,255,255,0.04);color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.reaction-inline:hover{background:rgba(179,108,255,0.06)}
+.reaction-inline .count{font-weight:700;color:var(--muted)}
+.fav-inline{padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:18px;line-height:1}
+.fav-inline:hover{background:rgba(179,108,255,0.04)}
+/* Visual state when favorited */
+.fav-inline.filled{color:var(--accent-2);background:linear-gradient(90deg, rgba(88,35,140,0.08), rgba(194,59,122,0.03));border-color:rgba(90,43,143,0.12)}
+.subscribe-inline{padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--accent);cursor:pointer}
+.subscribe-inline:hover{background:rgba(179,108,255,0.04)}
+.btn.small{padding:6px 8px;font-size:13px;border-radius:8px}
+.btn.danger{background:transparent;border:1px solid rgba(255,60,80,0.15);color:#ff8da6}
+.btn.danger.small{padding:6px 8px}
+
+/* Comments section header */
+.comments h3{color:var(--accent);margin-top:18px}
+.comment-form textarea{min-height:80px}
+.comment-form button{margin-top:8px}
+
+/* On small screens make gallery images fluid */
+@media (max-width:720px){
+  .post-images > div{width:48%;height:140px}
+}
+
+/* Lightbox overlay */
+.lightbox-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:2000;padding:20px}
+.lightbox-img{max-width:100%;max-height:100%;box-shadow:0 10px 30px rgba(0,0,0,0.6);border-radius:8px}
+.lightbox-img{transition:transform .08s linear}
+.lightbox-inner{max-height:90vh;overflow:auto;display:flex;align-items:center;justify-content:center}
+.lightbox-inner img{display:block}
+
+/* Additional UI decorations requested */
+.filters-bar label{font-weight:700;color:var(--muted)}
+.filters-bar select, .filters-bar input[type="date"], .filters-bar input[type="text"]{padding:6px 8px;border:1px solid rgba(255,255,255,0.04);border-radius:8px;background:transparent;color:var(--muted)}
+
+.file-input-row{display:flex;align-items:center;gap:8px}
+.file-input-row{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+.file-input-row input[type="file"]{flex:0 0 auto}
+.file-input-row button{flex:0 0 auto}
+.file-input-meta{color:var(--muted);font-size:13px;flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Make auth links look like small buttons on pages */
+.auth-guest a{background:transparent;border-radius:8px;padding:6px 10px;border:1px solid rgba(255,255,255,0.04);color:var(--muted);text-decoration:none}
+.auth-guest a:hover{background:var(--glass)}
+
+.search input{padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04)}
+
+.profile .profile-info div{margin-bottom:6px}
+
+.form-input{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted)}

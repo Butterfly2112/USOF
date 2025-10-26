@@ -42,7 +42,8 @@ router.patch('/avatar', auth, upload.single('profilePicture'), async (req, res, 
       return res.status(400).json({ success: false, error: 'No image file provided' });
     }
     
-    const relPath = '/' + path.join(process.env.UPLOAD_DIR || 'uploads', req.file.filename);
+  // Use posix join so generated URL uses forward slashes even on Windows
+  const relPath = '/' + path.posix.join(process.env.UPLOAD_DIR || 'uploads', req.file.filename);
     req.body.profilePicture = relPath;
     
     await userCtrl.updateAvatar(req, res, next);
@@ -68,7 +69,8 @@ router.get('/:userId', auth, userCtrl.getProfile);
 router.patch('/:userId', auth, upload.single('profilePicture'), async (req, res, next) => {
   try {
     if (req.file) {
-      const relPath = '/' + path.join(process.env.UPLOAD_DIR || 'uploads', req.file.filename);
+  // Use posix join so generated URL uses forward slashes even on Windows
+  const relPath = '/' + path.posix.join(process.env.UPLOAD_DIR || 'uploads', req.file.filename);
       req.body.profilePicture = relPath;
     }
     await userCtrl.updateProfile(req, res, next);

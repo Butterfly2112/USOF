@@ -20,8 +20,21 @@ async function updateProfile(req, res, next) {
     if (req.user.role !== 'admin' && req.user.id !== targetId) return res.status(403).json({ success: false, error: 'Forbidden' });
 
     const fields = {};
-    const allowed = ['fullName', 'email', 'profilePicture', 'role'];
+    const allowed = ['login', 'fullName', 'email', 'profilePicture', 'role'];
     for (const k of allowed) if (req.body[k] !== undefined) fields[k] = req.body[k];
+
+    // Only admins may change the 'role' field. If a non-admin user attempts to set 'role', reject.
+    if (fields.role !== undefined && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Only admins can change user roles' });
+    }
+
+    // If login is being changed, ensure it is unique
+    if (fields.login) {
+      const existing = await userModel.findByLoginOrEmail(fields.login);
+      if (existing && existing.id !== targetId) {
+        return res.status(400).json({ success: false, error: 'Login already exists' });
+      }
+    }
 
     if (Object.keys(fields).length === 0) return res.json({ success: true, message: 'Nothing to update' });
     await userModel.updateUser(targetId, fields);
@@ -44,12 +57,39 @@ async function deleteUser(req, res, next) {
 
 async function listUsers(req, res, next) {
   try {
-    const [rows] = await pool.query(`
-      SELECT id, login, fullName, profilePicture, rating, role, created_at 
-      FROM users 
-      ORDER BY rating DESC, id DESC
-    `);
-    res.json({ success: true, users: rows });
+    // Support query parameters: q (search), sort ('rating'|'new'), role (user|admin), page, pageSize
+    const { q, sort = 'rating', role, page = 1, pageSize = 20 } = req.query;
+    const where = [];
+    const vals = [];
+    if (q && String(q).trim().length) {
+      where.push('(login LIKE ? OR fullName LIKE ?)');
+      const like = `%${String(q).trim()}%`;
+      vals.push(like, like);
+    }
+    if (role && (role === 'admin' || role === 'user')) {
+      where.push('role = ?');
+      vals.push(role);
+    }
+
+    const whereSql = where.length ? 'WHERE ' + where.join(' AND ') : '';
+
+    // Sorting
+    let orderSql = 'rating DESC, id DESC';
+    if (sort === 'new' || sort === 'created') orderSql = 'created_at DESC, id DESC';
+    else if (sort === 'rating') orderSql = 'rating DESC, id DESC';
+
+    const offset = (Number(page) - 1) * Number(pageSize);
+
+    const sql = `SELECT id, login, fullName, profilePicture, rating, role, created_at FROM users ${whereSql} ORDER BY ${orderSql} LIMIT ? OFFSET ?`;
+    const valsForQuery = vals.concat([Number(pageSize), Number(offset)]);
+    const [rows] = await pool.query(sql, valsForQuery);
+
+    // total count
+    const countSql = `SELECT COUNT(*) as total FROM users ${whereSql}`;
+    const [countRows] = await pool.query(countSql, vals);
+    const total = (countRows[0] && countRows[0].total) ? Number(countRows[0].total) : 0;
+
+    res.json({ success: true, users: rows, total, page: Number(page), pageSize: Number(pageSize) });
   } catch (err) {
     next(err);
   }

@@ -19,7 +19,29 @@ async function findByLoginOrEmail(loginOrEmail) {
 }
 
 async function findById(id) {
-  const [rows] = await pool.query(`SELECT id, login, fullName, email, profilePicture, role FROM users WHERE id = ?`, [id]);
+  // Calculate rating on the fly as the net sum of likes minus dislikes
+  // across all posts and comments authored by the user.
+  const [rows] = await pool.query(`
+    SELECT u.id, u.login, u.fullName, u.email, u.profilePicture, u.role,
+      COALESCE(p.likes_sum, 0) + COALESCE(c.likes_sum, 0) AS rating
+    FROM users u
+    LEFT JOIN (
+      SELECT p.author_id AS user_id,
+        SUM(CASE WHEN l.type = 'like' THEN 1 WHEN l.type = 'dislike' THEN -1 ELSE 0 END) AS likes_sum
+      FROM posts p
+      JOIN likes l ON l.post_id = p.id
+      GROUP BY p.author_id
+    ) p ON p.user_id = u.id
+    LEFT JOIN (
+      SELECT c.author_id AS user_id,
+        SUM(CASE WHEN l.type = 'like' THEN 1 WHEN l.type = 'dislike' THEN -1 ELSE 0 END) AS likes_sum
+      FROM comments c
+      JOIN likes l ON l.comment_id = c.id
+      GROUP BY c.author_id
+    ) c ON c.user_id = u.id
+    WHERE u.id = ?
+  `, [id]);
+
   return rows[0];
 }
 

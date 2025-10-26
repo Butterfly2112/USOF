@@ -4,7 +4,13 @@ const { validationResult } = require('express-validator');
 async function createCategory(req, res, next) {
   try {
     const { title, description } = req.body;
-    const [result] = await pool.query('INSERT INTO categories (title, description) VALUES (?, ?)', [title, description]);
+    if (!title || !String(title).trim()) return res.status(400).json({ success: false, error: 'Title is required' });
+    // Prevent duplicate titles
+    const [existing] = await pool.query('SELECT id FROM categories WHERE title = ?', [title.trim()]);
+    if (existing && existing.length > 0) {
+      return res.status(400).json({ success: false, error: 'Category with this title already exists' });
+    }
+    const [result] = await pool.query('INSERT INTO categories (title, description) VALUES (?, ?)', [title.trim(), description || '']);
     res.json({ success: true, categoryId: result.insertId });
   } catch (err) {
     next(err);

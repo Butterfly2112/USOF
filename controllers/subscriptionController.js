@@ -1,4 +1,7 @@
 const pool = require('../config/database');
+const nodemailer = require('nodemailer');
+const dotenv = require('dotenv');
+dotenv.config();
 
 async function subscribeToPost(req, res, next) {
   try {
@@ -65,6 +68,35 @@ async function getNotifications(req, res, next) {
   }
 }
 
+async function listSubscriptions(req, res, next) {
+  try {
+    const userId = req.user.id;
+    const { page = 1, pageSize = 20 } = req.query;
+    const offset = (page - 1) * pageSize;
+
+    // Get subscribed post ids for this user
+    const [subs] = await pool.query('SELECT post_id FROM post_subscriptions WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?', [userId, Number(pageSize), Number(offset)]);
+    const postIds = subs.map(s => s.post_id);
+    if (postIds.length === 0) return res.json({ success: true, posts: [], total: 0 });
+
+    // Reuse post model to fetch each post in detail (keeps formatting consistent)
+    const postModel = require('../models/post');
+    const posts = [];
+    for (const id of postIds) {
+      const p = await postModel.getPostById(id);
+      if (p) posts.push(p);
+    }
+
+    // total count
+    const [countRows] = await pool.query('SELECT COUNT(*) as total FROM post_subscriptions WHERE user_id = ?', [userId]);
+    const total = (countRows[0] && countRows[0].total) ? Number(countRows[0].total) : 0;
+
+    res.json({ success: true, posts, total, page: Number(page), pageSize: Number(pageSize) });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function markAsRead(req, res, next) {
   try {
     const userId = req.user.id;
@@ -85,18 +117,67 @@ async function markAsRead(req, res, next) {
 // Helper function to create notifications for subscribers
 async function createNotification(type, postId, triggeredByUserId, message) {
   try {
-    // Get all subscribers except the user who triggered the action
+    // Get all subscribers (email + id) except the user who triggered the action
     const [subscribers] = await pool.query(
-      'SELECT user_id FROM post_subscriptions WHERE post_id = ? AND user_id != ?',
+      `SELECT u.id as user_id, u.email, u.login FROM post_subscriptions ps JOIN users u ON ps.user_id = u.id WHERE ps.post_id = ? AND ps.user_id != ?`,
       [postId, triggeredByUserId]
     );
-    
-    // Create notification for each subscriber
+
+    if (!subscribers || subscribers.length === 0) return;
+
+    // Prepare email transporter only if email notifications are enabled
+    const sendEmails = (process.env.EMAIL_NOTIFICATIONS === 'true' || process.env.SEND_NOTIFICATION_EMAILS === 'true');
+    let transporter;
+    if (sendEmails) {
+      try {
+        transporter = nodemailer.createTransport({
+          host: process.env.EMAIL_HOST,
+          port: Number(process.env.EMAIL_PORT || 587),
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+          }
+        });
+      } catch (e) {
+        console.error('Failed to create email transporter for notifications', e);
+        transporter = null;
+      }
+    }
+
+    // Insert DB notifications and optionally send email
     for (const subscriber of subscribers) {
-      await pool.query(
-        'INSERT INTO notifications (user_id, type, post_id, triggered_by_user_id, message) VALUES (?, ?, ?, ?, ?)',
-        [subscriber.user_id, type, postId, triggeredByUserId, message]
-      );
+      try {
+        await pool.query(
+          'INSERT INTO notifications (user_id, type, post_id, triggered_by_user_id, message) VALUES (?, ?, ?, ?, ?)',
+          [subscriber.user_id, type, postId, triggeredByUserId, message]
+        );
+
+        if (sendEmails && transporter && subscriber.email) {
+          // Build a short unsubscribe or view link using FRONTEND_URL when available
+          const frontend = (process.env.FRONTEND_URL || process.env.BASE_URL || '').replace(/\/+$/, '');
+          const viewLink = frontend ? `${frontend}/posts/${postId}` : '';
+          const unsubscribeLink = frontend ? `${frontend}/posts/${postId}?unsubscribe=true` : '';
+          const subject = type === 'new_comment' ? `New comment on a post you subscribed to` : `Update on a post you subscribed to`;
+          const html = `<p>${message}</p>${viewLink ? `<p><a href="${viewLink}">View post</a></p>` : ''}${unsubscribeLink ? `<p><small><a href="${unsubscribeLink}">Unsubscribe</a></small></p>` : ''}`;
+          try {
+            await transporter.sendMail({
+              from: process.env.EMAIL_USER,
+              to: subscriber.email,
+              subject,
+              text: `${message} ${viewLink ? '\n' + viewLink : ''}`,
+              html
+            });
+            // Log success so operator can verify mails were dispatched
+            console.log(`Notification email sent to ${subscriber.email} for post ${postId}`);
+          } catch (e) {
+            // Don't fail the whole loop on email errors — just log
+            console.error(`Failed to send notification email to ${subscriber.email}:`, e && e.message ? e.message : e);
+          }
+        }
+      } catch (e) {
+        // Log DB insertion error but continue for other subscribers
+        console.error('Failed to create notification for subscriber', subscriber, e);
+      }
     }
   } catch (err) {
     console.error('Error creating notifications:', err);
@@ -108,5 +189,6 @@ module.exports = {
   unsubscribeFromPost,
   getNotifications,
   markAsRead,
+  listSubscriptions,
   createNotification
 };
