@@ -107,4 +107,5 @@ If you want, I can:
 - add `post_deleted` notifications so subscribers are notified when a post is removed, or
 - implement optimistic subscribe UI on the client.
 
-*** End simplified README
+<img width="1892" height="740" alt="image" src="https://github.com/user-attachments/assets/4d1a0c59-09e3-4b9a-814f-01ac635a850e" /> 
+
